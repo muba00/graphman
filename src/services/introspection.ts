@@ -1,4 +1,5 @@
-import type { IntrospectionResult } from '../types/graphql';
+import { invoke } from "@tauri-apps/api/core";
+import type { IntrospectionResult } from "../types/graphql";
 
 /**
  * Standard GraphQL introspection query.
@@ -118,43 +119,33 @@ export async function fetchSchema(
   headers?: Record<string, string>,
 ): Promise<IntrospectionResponse> {
   try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        ...headers,
-      },
-      body: JSON.stringify({ query: INTROSPECTION_QUERY }),
+    const responseText = await invoke<string>("fetch_graphql", {
+      endpoint,
+      query: INTROSPECTION_QUERY,
+      variables: null,
+      headers: headers || null,
     });
 
-    if (!response.ok) {
-      return {
-        ok: false,
-        error: `HTTP ${response.status}: ${response.statusText}`,
-      };
-    }
-
-    const json = await response.json();
+    const json = JSON.parse(responseText);
 
     if (json.errors && json.errors.length > 0) {
       const messages = json.errors
         .map((e: IntrospectionError) => e.message)
-        .join('; ');
+        .join("; ");
       return { ok: false, error: `GraphQL errors: ${messages}` };
     }
 
     if (!json.data?.__schema) {
       return {
         ok: false,
-        error: 'Invalid introspection response: missing __schema',
+        error: "Invalid introspection response: missing __schema",
       };
     }
 
     return { ok: true, data: json as IntrospectionResult };
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : 'Unknown error during introspection';
+      err instanceof Error ? err.message : "Unknown error during introspection";
     return { ok: false, error: message };
   }
 }
