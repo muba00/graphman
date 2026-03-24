@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Search } from 'lucide-react';
 import type {
   IntrospectionSchema,
   OperationType,
@@ -68,15 +69,18 @@ export function SchemaExplorer({ schema }: SchemaExplorerProps) {
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          value={searchTerm}
-          onChangeText={setSearchTerm}
-          placeholder="Filter fields..."
-          placeholderTextColor={colors.textMuted}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+        <View style={styles.searchWrapper}>
+          <Search size={14} color={colors.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            placeholder="Filter fields..."
+            placeholderTextColor={colors.textMuted}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
       </View>
 
       {ops.length === 0 ? (
@@ -121,16 +125,25 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  searchInput: {
-    fontFamily: fonts.mono,
-    fontSize: fonts.monoSize,
-    color: colors.textPrimary,
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.bgInput,
-    borderRadius: 4,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: colors.border,
+    paddingHorizontal: spacing.sm,
+    height: 28, // Smaller height
+    gap: spacing.xs,
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: fonts.mono,
+    fontSize: 12, // Slightly smaller font
+    color: colors.textPrimary,
+    height: '100%',
+    padding: 0,
+    ...({ outlineStyle: 'none' } as any),
   },
   treeScroll: {
     flex: 1,
