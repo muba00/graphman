@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { colors, fonts, spacing } from "../theme";
+import { useAppState } from "../state/appStore";
 
 interface EndpointInputProps {
   onFetchSchema: (endpoint: string) => void;
@@ -20,7 +21,14 @@ export function EndpointInput({
   loading,
   error,
 }: EndpointInputProps) {
-  const [url, setUrl] = useState("");
+  const { lastEndpoint } = useAppState();
+  const [url, setUrl] = useState(lastEndpoint);
+
+  // Keep internal input state synced if global state somehow changes
+  // externally (like switching environments in the future).
+  useEffect(() => {
+    setUrl(lastEndpoint);
+  }, [lastEndpoint]);
 
   const handleSubmit = () => {
     const trimmed = url.trim();

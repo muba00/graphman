@@ -1,25 +1,27 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import type {
   IntrospectionSchema,
   OperationType,
   SchemaTreeNode,
-} from '../types/graphql';
-import { fetchSchema } from '../services/introspection';
+} from "../types/graphql";
+import { fetchSchema } from "../services/introspection";
 import {
   buildOperationTree,
   getAvailableOperations,
-} from '../utils/schemaParser';
-import { SelectionProvider } from '../state/selectionStore';
-import { EndpointInput } from '../components/EndpointInput';
-import { SchemaExplorer } from '../components/SchemaExplorer';
-import { QueryPreview } from '../components/QueryPreview';
-import { colors, fonts, spacing } from '../theme';
+} from "../utils/schemaParser";
+import { SelectionProvider } from "../state/selectionStore";
+import { EndpointInput } from "../components/EndpointInput";
+import { SchemaExplorer } from "../components/SchemaExplorer";
+import { QueryPreview } from "../components/QueryPreview";
+import { useAppDispatch } from "../state/appStore";
+import { colors, fonts, spacing } from "../theme";
 
 function QueryBuilderContent() {
   const [schema, setSchema] = useState<IntrospectionSchema | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const appDispatch = useAppDispatch();
 
   const trees = useMemo(() => {
     if (!schema) {
@@ -35,20 +37,24 @@ function QueryBuilderContent() {
     return result;
   }, [schema]);
 
-  const handleFetchSchema = useCallback(async (endpoint: string) => {
-    setLoading(true);
-    setError(null);
+  const handleFetchSchema = useCallback(
+    async (endpoint: string) => {
+      setLoading(true);
+      setError(null);
 
-    const result = await fetchSchema(endpoint);
+      const result = await fetchSchema(endpoint);
 
-    if (result.ok) {
-      setSchema(result.data.data.__schema);
-    } else {
-      setError(result.error);
-    }
+      if (result.ok) {
+        setSchema(result.data.data.__schema);
+        appDispatch({ type: "SET_LAST_ENDPOINT", payload: endpoint });
+      } else {
+        setError(result.error);
+      }
 
-    setLoading(false);
-  }, []);
+      setLoading(false);
+    },
+    [appDispatch],
+  );
 
   return (
     <View style={styles.container}>
@@ -78,7 +84,7 @@ function QueryBuilderContent() {
           <Text style={styles.welcomeTitle}>GraphMan</Text>
           <Text style={styles.welcomeSubtitle}>
             Enter a GraphQL endpoint above to explore the schema
-            {'\n'}and build queries with checkboxes.
+            {"\n"}and build queries with checkboxes.
           </Text>
         </View>
       )}
@@ -101,7 +107,7 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   explorerPanel: {
     flex: 1,
@@ -117,20 +123,20 @@ const styles = StyleSheet.create({
   },
   welcomeContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: spacing.xl,
   },
   welcomeTitle: {
     fontSize: 32,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.textPrimary,
     marginBottom: spacing.md,
   },
   welcomeSubtitle: {
     fontSize: fonts.uiSize,
     color: colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 22,
   },
 });
