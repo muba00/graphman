@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import type { OperationType, SchemaTreeNode } from "../types/graphql";
 import { useSelection } from "../state/selectionStore";
@@ -11,15 +11,50 @@ interface QueryPreviewProps {
 
 export function QueryPreview({ trees }: QueryPreviewProps) {
   const { state } = useSelection();
+  // Reasonable default based on window height, falling back to 400
+  const [topHeight, setTopHeight] = useState(
+    typeof window !== "undefined" ? window.innerHeight * 0.6 : 400,
+  );
+  const [isDraggingHandle, setIsDraggingHandle] = useState(false);
+  const dragInfo = useRef({ isDragging: false, startY: 0, startHeight: 0 });
 
   const generated = useMemo(
     () => generateAllQueries(state, trees),
     [state, trees],
   );
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragInfo.current.isDragging) return;
+
+      const dy = e.clientY - dragInfo.current.startY;
+      const newHeight = Math.max(100, dragInfo.current.startHeight + dy);
+
+      // Rough max height: Window height minus some allowance for top bar and variables header
+      const maxHeight = window.innerHeight - 150;
+      setTopHeight(Math.min(newHeight, maxHeight));
+    };
+
+    const handleMouseUp = () => {
+      if (dragInfo.current.isDragging) {
+        dragInfo.current.isDragging = false;
+        setIsDraggingHandle(false);
+        document.body.style.cursor = "default";
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
   return (
     <View style={styles.container}>
-      <View style={styles.querySection}>
+      <View style={[styles.querySection, { height: topHeight }]}>
         <View style={styles.header}>
           <Text style={styles.headerText}>Generated Query</Text>
         </View>
@@ -38,6 +73,21 @@ export function QueryPreview({ trees }: QueryPreviewProps) {
           )}
         </ScrollView>
       </View>
+
+      {/* Interactive Horizontal Resize Handle */}
+      <div
+        className={`resize-handle-horizontal ${isDraggingHandle ? "dragging" : ""}`}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          dragInfo.current = {
+            isDragging: true,
+            startY: e.clientY,
+            startHeight: topHeight,
+          };
+          setIsDraggingHandle(true);
+          document.body.style.cursor = "row-resize";
+        }}
+      />
 
       <View style={styles.variablesSection}>
         <View style={styles.header}>
@@ -61,17 +111,21 @@ export function QueryPreview({ trees }: QueryPreviewProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
     backgroundColor: colors.bgSurface,
+    display: "flex",
+    flexDirection: "column",
   },
   querySection: {
-    flex: 2,
+    // Removed flex: 2 so height style takes precedence
+    minHeight: 100,
+    display: "flex",
+    flexDirection: "column",
   },
   variablesSection: {
     flex: 1,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    minHeight: 100,
+    display: "flex",
+    flexDirection: "column",
   },
   header: {
     paddingHorizontal: spacing.md,

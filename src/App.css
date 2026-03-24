@@ -27,3 +27,20 @@ body,
 .resize-handle.dragging {
   background-color: #007acc;
 }
+.resize-handle-horizontal {
+  height: 1px;
+  padding: 4px 0; /* Increases hit area to 9px */
+  margin: -4px 0; /* Overlaps adjacent panels so layout height remains 1px */
+  background-color: #404040;
+  cursor: row-resize;
+  z-index: 10;
+  background-clip: content-box;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+  box-sizing: content-box;
+}
+
+.resize-handle-horizontal:hover,
+.resize-handle-horizontal.dragging {
+  background-color: #007acc;
+}
