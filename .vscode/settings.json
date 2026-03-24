@@ -1,0 +1,3 @@
+{
+    "i18next.i18nPaths": "/Users/mubariz/code/graphman/ios/Pods/RCT-Folly/folly/lang,/Users/mubariz/code/graphman/macos/Pods/RCT-Folly/folly/lang,/Users/mubariz/code/graphman/ios/Pods/Headers/Private/RCT-Folly/folly/lang,/Users/mubariz/code/graphman/ios/Pods/Headers/Public/RCT-Folly/folly/lang,/Users/mubariz/code/graphman/macos/Pods/Headers/Private/RCT-Folly/folly/lang,/Users/mubariz/code/graphman/macos/Pods/Headers/Public/RCT-Folly/folly/lang,/Users/mubariz/code/graphman/vendor/bundle/ruby/3.3.0/gems/i18n-1.14.8/lib/i18n,/Users/mubariz/code/graphman/vendor/bundle/ruby/3.3.0/gems/activesupport-7.2.3.1/lib/active_support/locale,/Users/mubariz/code/graphman/vendor/bundle/ruby/3.3.0/gems/i18n-1.14.8/lib/i18n/locale"
+}
