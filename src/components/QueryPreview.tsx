@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import type { OperationType, SchemaTreeNode } from '../types/graphql';
-import { useSelection } from '../state/selectionStore';
-import { generateAllQueries } from '../utils/queryGenerator';
-import { colors, fonts, spacing } from '../theme';
+import React, { useMemo } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import type { OperationType, SchemaTreeNode } from "../types/graphql";
+import { useSelection } from "../state/selectionStore";
+import { generateAllQueries } from "../utils/queryGenerator";
+import { colors, fonts, spacing } from "../theme";
 
 interface QueryPreviewProps {
   trees: Partial<Record<OperationType, SchemaTreeNode[]>>;
@@ -12,27 +12,48 @@ interface QueryPreviewProps {
 export function QueryPreview({ trees }: QueryPreviewProps) {
   const { state } = useSelection();
 
-  const query = useMemo(() => generateAllQueries(state, trees), [state, trees]);
+  const generated = useMemo(
+    () => generateAllQueries(state, trees),
+    [state, trees],
+  );
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Generated Query</Text>
+      <View style={styles.querySection}>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Generated Query</Text>
+        </View>
+        <ScrollView
+          style={styles.codeScroll}
+          contentContainerStyle={styles.codeContent}
+        >
+          {generated.query ? (
+            <Text style={styles.code} selectable>
+              {generated.query}
+            </Text>
+          ) : (
+            <Text style={styles.placeholder}>
+              Select fields from the schema to generate a query.
+            </Text>
+          )}
+        </ScrollView>
       </View>
-      <ScrollView
-        style={styles.codeScroll}
-        contentContainerStyle={styles.codeContent}
-      >
-        {query ? (
+
+      <View style={styles.variablesSection}>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Variables</Text>
+        </View>
+        <ScrollView
+          style={styles.codeScroll}
+          contentContainerStyle={styles.codeContent}
+        >
           <Text style={styles.code} selectable>
-            {query}
+            {generated.query && Object.keys(generated.variables).length > 0
+              ? JSON.stringify(generated.variables, null, 2)
+              : "{}"}
           </Text>
-        ) : (
-          <Text style={styles.placeholder}>
-            Select fields from the schema to generate a query.
-          </Text>
-        )}
-      </ScrollView>
+        </ScrollView>
+      </View>
     </View>
   );
 }
@@ -44,6 +65,14 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     backgroundColor: colors.bgSurface,
   },
+  querySection: {
+    flex: 2,
+  },
+  variablesSection: {
+    flex: 1,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
   header: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -52,9 +81,9 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: fonts.smallSize,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textSecondary,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   codeScroll: {
@@ -72,6 +101,6 @@ const styles = StyleSheet.create({
   placeholder: {
     color: colors.textMuted,
     fontSize: fonts.uiSize,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
 });

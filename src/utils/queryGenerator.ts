@@ -3,31 +3,48 @@ import type {
   OperationType,
   SchemaTreeNode,
   SelectionState,
-} from '../types/graphql';
+} from "../types/graphql";
+
+export interface GeneratedQueries {
+  query: string;
+  variables: Record<string, any>;
+}
+
+interface VariableDef {
+  type: string;
+  value: any;
+}
 
 /**
  * Generate all non-empty GraphQL operations from the current selection state.
- * Returns one string containing all operations separated by blank lines.
+ * Returns an object with the combined Operations string and a Variables JSON object mapping.
  */
 export function generateAllQueries(
   state: SelectionState,
   trees: Partial<Record<OperationType, SchemaTreeNode[]>>,
-): string {
+): GeneratedQueries {
   const parts: string[] = [];
+  const allVariables: Record<string, any> = {};
 
-  for (const op of ['query', 'mutation', 'subscription'] as OperationType[]) {
+  for (const op of ["query", "mutation", "subscription"] as OperationType[]) {
     const tree = trees[op];
     const opSelections = state.selections[op];
     if (!tree || !opSelections) {
       continue;
     }
-    const q = generateOperationQuery(op, opSelections, tree);
-    if (q) {
-      parts.push(q);
+
+    // Each operation might define its own vars; we group them together.
+    const res = generateOperationQuery(op, opSelections, tree);
+    if (res.query) {
+      parts.push(res.query);
+      Object.assign(allVariables, res.variables);
     }
   }
 
-  return parts.join('\n');
+  return {
+    query: parts.join("\n"),
+    variables: allVariables,
+  };
 }
 
 /**
@@ -37,14 +54,39 @@ function generateOperationQuery(
   operationType: OperationType,
   selections: Record<string, FieldSelection>,
   tree: SchemaTreeNode[],
-): string {
-  const selectedFields = buildSelectionSet(selections, tree, 1);
+): { query: string; variables: Record<string, any> } {
+  const variableDefs: Record<string, VariableDef> = {};
+
+  const selectedFields = buildSelectionSet(
+    selections,
+    tree,
+    1,
+    [],
+    variableDefs,
+  );
 
   if (!selectedFields.trim()) {
-    return '';
+    return { query: "", variables: {} };
   }
 
-  return `${operationType} {\n${selectedFields}}\n`;
+  const varNames = Object.keys(variableDefs);
+  let opHeader = operationType;
+  if (varNames.length > 0) {
+    const varDeclarations = varNames
+      .map((vn) => `$${vn}: ${variableDefs[vn].type}`)
+      .join(", ");
+    opHeader += ` (${varDeclarations})`;
+  }
+
+  const actualVariables: Record<string, any> = {};
+  for (const [k, v] of Object.entries(variableDefs)) {
+    actualVariables[k] = v.value;
+  }
+
+  return {
+    query: `${opHeader} {\n${selectedFields}}\n`,
+    variables: actualVariables,
+  };
 }
 
 /**
@@ -54,9 +96,11 @@ function buildSelectionSet(
   selections: Record<string, FieldSelection>,
   treeNodes: SchemaTreeNode[],
   depth: number,
+  path: string[],
+  variableDefs: Record<string, VariableDef>,
 ): string {
-  const indent = '  '.repeat(depth);
-  let result = '';
+  const indent = "  ".repeat(depth);
+  let result = "";
 
   for (const node of treeNodes) {
     const selection = selections[node.name];
@@ -64,7 +108,14 @@ function buildSelectionSet(
       continue;
     }
 
-    const argsString = buildArgumentsString(selection.args);
+    const currentPath = [...path, node.name];
+    const argsString = buildArgumentsString(
+      selection.args,
+      node,
+      currentPath,
+      variableDefs,
+    );
+
     const hasSelectedChildren = hasAnySelectedChild(
       selection.subFields,
       node.children,
@@ -75,6 +126,8 @@ function buildSelectionSet(
         selection.subFields,
         node.children,
         depth + 1,
+        currentPath,
+        variableDefs,
       );
       result += `${indent}${node.name}${argsString} {\n${childSelections}${indent}}\n`;
     } else {
@@ -86,67 +139,50 @@ function buildSelectionSet(
 }
 
 /**
- * Build the arguments string for a field, e.g. (id: "123", limit: 10).
+ * Build the arguments string for a field, injecting variables instead of raw values.
  */
-function buildArgumentsString(args: Record<string, string>): string {
-  const entries = Object.entries(args).filter(([_, value]) => value !== '');
+function buildArgumentsString(
+  args: Record<string, string>,
+  node: SchemaTreeNode,
+  path: string[],
+  variableDefs: Record<string, VariableDef>,
+): string {
+  const entries = Object.entries(args).filter(([_, value]) => value !== "");
   if (entries.length === 0) {
-    return '';
+    return "";
   }
 
   const argParts = entries.map(([name, value]) => {
-    // Try to detect if the value is a number, boolean, or enum (no quotes)
-    // Otherwise treat as string and wrap in quotes
-    const formatted = formatArgValue(value);
-    return `${name}: ${formatted}`;
+    const varName = `${path.join("_")}_${name}`;
+    const argDef = node.args.find((a) => a.name === name);
+    const typeStr = argDef ? argDef.typeString : "String!"; // Fallback
+
+    // Determine value representation
+    let parsedValue: any = value;
+    if (value === "null") {
+      parsedValue = null;
+    } else if (value === "true") {
+      parsedValue = true;
+    } else if (value === "false") {
+      parsedValue = false;
+    } else if (/^-?\d+(\.\d+)?$/.test(value)) {
+      parsedValue = Number(value);
+    } else if (
+      (value.startsWith("{") && value.endsWith("}")) ||
+      (value.startsWith("[") && value.endsWith("]"))
+    ) {
+      try {
+        parsedValue = JSON.parse(value);
+      } catch (e) {
+        // Fallback to string if unparseable
+      }
+    }
+
+    variableDefs[varName] = { type: typeStr, value: parsedValue };
+    return `${name}: $${varName}`;
   });
 
-  return `(${argParts.join(', ')})`;
-}
-
-/**
- * Format an argument value for the query string.
- * - Numbers, booleans, null, and enum-like values are left unquoted
- * - Strings are wrapped in double quotes
- * - JSON objects/arrays are passed through
- */
-function formatArgValue(value: string): string {
-  // null
-  if (value === 'null') {
-    return 'null';
-  }
-
-  // boolean
-  if (value === 'true' || value === 'false') {
-    return value;
-  }
-
-  // number (integer or float)
-  if (/^-?\d+(\.\d+)?$/.test(value)) {
-    return value;
-  }
-
-  // enum-like value (UPPER_CASE identifier)
-  if (/^[A-Z][A-Z0-9_]*$/.test(value)) {
-    return value;
-  }
-
-  // JSON object or array
-  if (
-    (value.startsWith('{') && value.endsWith('}')) ||
-    (value.startsWith('[') && value.endsWith(']'))
-  ) {
-    return value;
-  }
-
-  // Variable reference
-  if (value.startsWith('$')) {
-    return value;
-  }
-
-  // Default: string — wrap in quotes, escaping inner quotes
-  const escaped = value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-  return `"${escaped}"`;
+  return `(${argParts.join(", ")})`;
 }
 
 /**
