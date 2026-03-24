@@ -1,26 +1,26 @@
-import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Search } from 'lucide-react';
+import React, { useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Search } from "lucide-react";
 import type {
   IntrospectionSchema,
   OperationType,
   SchemaTreeNode,
-} from '../types/graphql';
+} from "../types/graphql";
 import {
   buildOperationTree,
   getAvailableOperations,
-} from '../utils/schemaParser';
-import { FieldNode } from './FieldNode';
-import { colors, fonts, spacing } from '../theme';
+} from "../utils/schemaParser";
+import { FieldNode } from "./FieldNode";
+import { colors, fonts, spacing } from "../theme";
 
 interface SchemaExplorerProps {
   schema: IntrospectionSchema;
 }
 
 const sectionLabels: Record<OperationType, string> = {
-  query: 'Query',
-  mutation: 'Mutation',
-  subscription: 'Subscription',
+  query: "Query",
+  mutation: "Mutation",
+  subscription: "Subscription",
 };
 
 /**
@@ -29,11 +29,11 @@ const sectionLabels: Record<OperationType, string> = {
  */
 function filterTree(nodes: SchemaTreeNode[], term: string): SchemaTreeNode[] {
   const lower = term.toLowerCase();
-  return nodes.filter(node => node.name.toLowerCase().includes(lower));
+  return nodes.filter((node) => node.name.toLowerCase().includes(lower));
 }
 
 export function SchemaExplorer({ schema }: SchemaExplorerProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const availableOps = useMemo(() => getAvailableOperations(schema), [schema]);
 
   const trees = useMemo(() => {
@@ -64,7 +64,7 @@ export function SchemaExplorer({ schema }: SchemaExplorerProps) {
     return result;
   }, [trees, searchTerm, availableOps]);
 
-  const ops = availableOps.filter(op => filteredTrees[op]);
+  const ops = availableOps.filter((op) => filteredTrees[op]);
 
   return (
     <View style={styles.container}>
@@ -87,8 +87,8 @@ export function SchemaExplorer({ schema }: SchemaExplorerProps) {
         <View style={styles.empty}>
           <Text style={styles.emptyText}>
             {searchTerm.trim()
-              ? 'No fields match your search.'
-              : 'No operations available.'}
+              ? "No fields match your search."
+              : "No operations available."}
           </Text>
         </View>
       ) : (
@@ -96,10 +96,10 @@ export function SchemaExplorer({ schema }: SchemaExplorerProps) {
           style={styles.treeScroll}
           contentContainerStyle={styles.treeContent}
         >
-          {ops.map(op => (
+          {ops.map((op) => (
             <View key={op} style={styles.section}>
               <Text style={styles.sectionTitle}>{sectionLabels[op]}</Text>
-              {filteredTrees[op]!.map(node => (
+              {filteredTrees[op]!.map((node) => (
                 <FieldNode
                   key={node.path}
                   node={node}
@@ -126,8 +126,8 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   searchWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.bgInput,
     borderRadius: 6,
     borderWidth: 1,
@@ -141,9 +141,9 @@ const styles = StyleSheet.create({
     fontFamily: fonts.mono,
     fontSize: 12, // Slightly smaller font
     color: colors.textPrimary,
-    height: '100%',
+    height: "100%",
     padding: 0,
-    ...({ outlineStyle: 'none' } as any),
+    ...({ outlineStyle: "none" } as any),
   },
   treeScroll: {
     flex: 1,
@@ -156,15 +156,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: fonts.uiSize,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textSecondary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   empty: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: spacing.xl,
   },
   emptyText: {
