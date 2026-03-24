@@ -69,7 +69,6 @@ export function EndpointInput({
 const styles = StyleSheet.create({
   container: {
     padding: spacing.md,
-    paddingTop: 36, // Added padding to clear the macOS window traffic lights
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     backgroundColor: colors.bgSurface,
