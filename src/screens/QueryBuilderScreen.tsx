@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type {
   IntrospectionSchema,
@@ -21,8 +27,41 @@ function QueryBuilderContent() {
   const [schema, setSchema] = useState<IntrospectionSchema | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [leftWidth, setLeftWidth] = useState(350);
+  const [isDraggingHandle, setIsDraggingHandle] = useState(false);
+  const isDragging = useRef(false);
+
   const appDispatch = useAppDispatch();
   const { lastEndpoint } = useAppState();
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return;
+
+      // Calculate new width ensuring it doesn't get too small or too large
+      const newWidth = Math.max(
+        250,
+        Math.min(e.clientX, window.innerWidth - 300),
+      );
+      setLeftWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      if (isDragging.current) {
+        isDragging.current = false;
+        setIsDraggingHandle(false);
+        document.body.style.cursor = "default";
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
 
   const trees = useMemo(() => {
     if (!schema) {
@@ -76,12 +115,20 @@ function QueryBuilderContent() {
       {schema ? (
         <View style={styles.mainContent}>
           {/* Left panel: Schema explorer */}
-          <View style={styles.explorerPanel}>
+          <View style={[styles.explorerPanel, { width: leftWidth }]}>
             <SchemaExplorer schema={schema} />
           </View>
 
-          {/* Resize handle (visual separator for now) */}
-          <View style={styles.separator} />
+          {/* Interactive Resize Handle */}
+          <div
+            className={`resize-handle ${isDraggingHandle ? "dragging" : ""}`}
+            onMouseDown={(e) => {
+              e.preventDefault(); // preventing selection
+              isDragging.current = true;
+              setIsDraggingHandle(true);
+              document.body.style.cursor = "col-resize";
+            }}
+          />
 
           {/* Right panel: Query preview */}
           <View style={styles.previewPanel}>
@@ -117,14 +164,11 @@ const styles = StyleSheet.create({
   mainContent: {
     flex: 1,
     flexDirection: "row",
+    position: "relative",
   },
   explorerPanel: {
-    flex: 1,
-    minWidth: 300,
-  },
-  separator: {
-    width: 1,
-    backgroundColor: colors.border,
+    minWidth: 250,
+    backgroundColor: colors.bg, // ensuring clean background behind nodes
   },
   previewPanel: {
     flex: 1,

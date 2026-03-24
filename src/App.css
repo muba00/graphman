@@ -1,9 +1,29 @@
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  background-color: #1E1E1E;
+  background-color: #1e1e1e;
+}
+
+.resize-handle {
+  width: 1px;
+  padding: 0 4px; /* Increases hit area to 9px */
+  margin: 0 -4px; /* Overlaps adjacent panels so layout width remains 1px */
+  background-color: #404040;
+  cursor: col-resize;
+  z-index: 10;
+  background-clip: content-box;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+  box-sizing: content-box;
+}
+
+.resize-handle:hover,
+.resize-handle.dragging {
+  background-color: #007acc;
 }
