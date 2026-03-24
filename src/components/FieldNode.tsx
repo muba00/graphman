@@ -124,7 +124,7 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
 
       {/* Arguments panel — auto-shown when field is selected */}
       {showArgs && (
-        <View style={[styles.argsPanel, { marginLeft: leftPadding + 40 }]}>
+        <View style={[styles.argsPanel, { marginLeft: leftPadding + 28 }]}>
           <Pressable
             style={styles.argsPanelHeader}
             onPress={() => setArgsCollapsed((prev) => !prev)}
@@ -177,18 +177,20 @@ interface ArgumentRowProps {
 function ArgumentRow({ arg, value, onChange }: ArgumentRowProps) {
   return (
     <View style={styles.argRow}>
-      <View style={styles.argLabelRow}>
-        <Text style={styles.argName}>
-          {arg.name}
-          {arg.isRequired && <Text style={styles.required}> *</Text>}
-        </Text>
-        <Text style={styles.argType}>{arg.typeString}</Text>
+      <View style={styles.argHeaderContainer}>
+        <View style={styles.argLabelRow}>
+          <Text style={styles.argName}>
+            {arg.name}
+            {arg.isRequired && <Text style={styles.required}> *</Text>}
+          </Text>
+          <Text style={styles.argType}>{arg.typeString}</Text>
+        </View>
+        {arg.description && (
+          <Text style={styles.argDescription} numberOfLines={2}>
+            {arg.description}
+          </Text>
+        )}
       </View>
-      {arg.description && (
-        <Text style={styles.argDescription} numberOfLines={1}>
-          {arg.description}
-        </Text>
-      )}
       <TextInput
         style={[styles.argInput, value ? styles.argInputFilled : null]}
         value={value}
@@ -260,16 +262,23 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   argsPanel: {
-    marginBottom: spacing.xs,
-    borderLeftWidth: 2,
-    borderLeftColor: colors.accentMuted,
+    marginTop: 2,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.bgSurface,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
     marginRight: spacing.md,
+    overflow: "hidden",
   },
   argsPanelHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 3,
+    paddingVertical: 6,
     paddingHorizontal: spacing.sm,
+    backgroundColor: colors.bgElevated,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   argsPanelChevron: {
     width: 14,
@@ -279,15 +288,19 @@ const styles = StyleSheet.create({
   argsPanelTitle: {
     fontSize: fonts.smallSize,
     fontWeight: "600",
-    color: colors.textSecondary,
+    color: colors.textPrimary,
+    textTransform: "uppercase",
   },
   argsBody: {
-    paddingHorizontal: spacing.sm,
-    paddingBottom: spacing.xs,
-    gap: spacing.sm,
+    padding: spacing.sm,
+    gap: spacing.md,
   },
   argRow: {
+    gap: spacing.xs,
+  },
+  argHeaderContainer: {
     gap: 2,
+    marginBottom: 2,
   },
   argLabelRow: {
     flexDirection: "row",
@@ -298,6 +311,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.mono,
     fontSize: fonts.smallSize,
     color: colors.syntaxArg,
+    fontWeight: "500",
   },
   required: {
     color: colors.error,
@@ -305,26 +319,27 @@ const styles = StyleSheet.create({
   },
   argType: {
     fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.textMuted,
+    fontSize: 11,
+    color: colors.syntaxType,
   },
   argDescription: {
     fontSize: 11,
     color: colors.textMuted,
-    fontStyle: "italic",
+    lineHeight: 14,
   },
   argInput: {
     fontFamily: fonts.mono,
     fontSize: fonts.smallSize,
     color: colors.textPrimary,
     backgroundColor: colors.bgInput,
-    borderRadius: 3,
+    borderRadius: 4,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'transparent',
   },
   argInputFilled: {
-    borderColor: colors.accentMuted,
+    borderColor: colors.accent,
+    backgroundColor: colors.bgHover,
   },
 });
