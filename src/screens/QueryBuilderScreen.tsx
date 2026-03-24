@@ -27,9 +27,15 @@ function QueryBuilderContent() {
   const [schema, setSchema] = useState<IntrospectionSchema | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [leftWidth, setLeftWidth] = useState(350);
+  const [leftWidth, setLeftWidth] = useState(() => {
+    if (typeof window === "undefined") return 350;
+    const saved = localStorage.getItem("graphman_leftWidth");
+    if (saved) return parseInt(saved, 10);
+    return window.innerWidth / 2;
+  });
   const [isDraggingHandle, setIsDraggingHandle] = useState(false);
   const isDragging = useRef(false);
+  const currentLeftWidth = useRef(leftWidth);
 
   const appDispatch = useAppDispatch();
   const { lastEndpoint } = useAppState();
@@ -44,6 +50,7 @@ function QueryBuilderContent() {
         Math.min(e.clientX, window.innerWidth - 300),
       );
       setLeftWidth(newWidth);
+      currentLeftWidth.current = newWidth;
     };
 
     const handleMouseUp = () => {
@@ -51,6 +58,10 @@ function QueryBuilderContent() {
         isDragging.current = false;
         setIsDraggingHandle(false);
         document.body.style.cursor = "default";
+        localStorage.setItem(
+          "graphman_leftWidth",
+          currentLeftWidth.current.toString(),
+        );
       }
     };
 

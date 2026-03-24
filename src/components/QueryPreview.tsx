@@ -12,11 +12,15 @@ interface QueryPreviewProps {
 export function QueryPreview({ trees }: QueryPreviewProps) {
   const { state } = useSelection();
   // Reasonable default based on window height, falling back to 400
-  const [topHeight, setTopHeight] = useState(
-    typeof window !== "undefined" ? window.innerHeight * 0.6 : 400,
-  );
+  const [topHeight, setTopHeight] = useState(() => {
+    if (typeof window === "undefined") return 400;
+    const saved = localStorage.getItem("graphman_topHeight");
+    if (saved) return parseInt(saved, 10);
+    return window.innerHeight / 2;
+  });
   const [isDraggingHandle, setIsDraggingHandle] = useState(false);
   const dragInfo = useRef({ isDragging: false, startY: 0, startHeight: 0 });
+  const currentTopHeight = useRef(topHeight);
 
   const generated = useMemo(
     () => generateAllQueries(state, trees),
@@ -32,7 +36,9 @@ export function QueryPreview({ trees }: QueryPreviewProps) {
 
       // Rough max height: Window height minus some allowance for top bar and variables header
       const maxHeight = window.innerHeight - 150;
-      setTopHeight(Math.min(newHeight, maxHeight));
+      const finalHeight = Math.min(newHeight, maxHeight);
+      setTopHeight(finalHeight);
+      currentTopHeight.current = finalHeight;
     };
 
     const handleMouseUp = () => {
@@ -40,6 +46,10 @@ export function QueryPreview({ trees }: QueryPreviewProps) {
         dragInfo.current.isDragging = false;
         setIsDraggingHandle(false);
         document.body.style.cursor = "default";
+        localStorage.setItem(
+          "graphman_topHeight",
+          currentTopHeight.current.toString(),
+        );
       }
     };
 
