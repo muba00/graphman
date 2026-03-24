@@ -1,13 +1,14 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useSelection, actions } from '../state/selectionStore';
+import React, { useCallback, useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ChevronRight, ChevronDown } from "lucide-react";
+import { useSelection, actions } from "../state/selectionStore";
 import type {
   ArgumentNode,
   OperationType,
   SchemaTreeNode,
-} from '../types/graphql';
-import { colors, fonts, spacing } from '../theme';
-import { Checkbox } from './Checkbox';
+} from "../types/graphql";
+import { colors, fonts, spacing } from "../theme";
+import { Checkbox } from "./Checkbox";
 
 interface FieldNodeProps {
   node: SchemaTreeNode;
@@ -24,7 +25,7 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
   const [expanded, setExpanded] = useState(false);
   const [argsCollapsed, setArgsCollapsed] = useState(false);
 
-  const path = useMemo(() => node.path.split('.'), [node.path]);
+  const path = useMemo(() => node.path.split("."), [node.path]);
   const selected = isSelected(operationType, path);
   const fieldSelection = getFieldSelection(operationType, path);
 
@@ -35,7 +36,7 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
     }
     const sub = fieldSelection?.subFields ?? {};
     const selectedChildCount = node.children.filter(
-      c => sub[c.name]?.selected,
+      (c) => sub[c.name]?.selected,
     ).length;
     return selectedChildCount > 0 && selectedChildCount < node.children.length;
   }, [selected, node, fieldSelection]);
@@ -56,7 +57,7 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
   ]);
 
   const handleExpandToggle = useCallback(() => {
-    setExpanded(prev => !prev);
+    setExpanded((prev) => !prev);
   }, []);
 
   const handleArgChange = useCallback(
@@ -69,7 +70,7 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
   const leftPadding = depth * 20;
   const showArgs = selected && node.args.length > 0;
   const filledArgCount = node.args.filter(
-    a => fieldSelection?.args[a.name],
+    (a) => fieldSelection?.args[a.name],
   ).length;
 
   return (
@@ -78,9 +79,9 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
         {/* Expand/collapse chevron */}
         {node.hasSubFields ? (
           <Pressable onPress={handleExpandToggle} style={styles.chevronHitArea}>
-            <Text style={[styles.chevron, expanded && styles.chevronExpanded]}>
-              ▶
-            </Text>
+            <View style={[styles.chevron, expanded && styles.chevronExpanded]}>
+              <ChevronRight size={14} color={colors.textSecondary} />
+            </View>
           </Pressable>
         ) : (
           <View style={styles.chevronPlaceholder} />
@@ -111,8 +112,8 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
             >
               {filledArgCount > 0
                 ? `${filledArgCount}/${node.args.length}`
-                : node.args.length}{' '}
-              arg{node.args.length !== 1 ? 's' : ''}
+                : node.args.length}{" "}
+              arg{node.args.length !== 1 ? "s" : ""}
             </Text>
           </View>
         )}
@@ -126,21 +127,25 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
         <View style={[styles.argsPanel, { marginLeft: leftPadding + 40 }]}>
           <Pressable
             style={styles.argsPanelHeader}
-            onPress={() => setArgsCollapsed(prev => !prev)}
+            onPress={() => setArgsCollapsed((prev) => !prev)}
           >
-            <Text style={styles.argsPanelChevron}>
-              {argsCollapsed ? '▶' : '▼'}
-            </Text>
+            <View style={styles.argsPanelChevron}>
+              {argsCollapsed ? (
+                <ChevronRight size={14} color={colors.textSecondary} />
+              ) : (
+                <ChevronDown size={14} color={colors.textSecondary} />
+              )}
+            </View>
             <Text style={styles.argsPanelTitle}>Arguments</Text>
           </Pressable>
 
           {!argsCollapsed && (
             <View style={styles.argsBody}>
-              {node.args.map(arg => (
+              {node.args.map((arg) => (
                 <ArgumentRow
                   key={arg.name}
                   arg={arg}
-                  value={fieldSelection?.args[arg.name] ?? ''}
+                  value={fieldSelection?.args[arg.name] ?? ""}
                   onChange={handleArgChange}
                 />
               ))}
@@ -151,7 +156,7 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
 
       {/* Children */}
       {expanded &&
-        node.children.map(child => (
+        node.children.map((child) => (
           <FieldNode
             key={child.path}
             node={child}
@@ -187,7 +192,7 @@ function ArgumentRow({ arg, value, onChange }: ArgumentRowProps) {
       <TextInput
         style={[styles.argInput, value ? styles.argInputFilled : null]}
         value={value}
-        onChangeText={v => onChange(arg.name, v)}
+        onChangeText={(v) => onChange(arg.name, v)}
         placeholder={arg.defaultValue ?? arg.typeString}
         placeholderTextColor={colors.textMuted}
         autoCapitalize="none"
@@ -200,8 +205,8 @@ function ArgumentRow({ arg, value, onChange }: ArgumentRowProps) {
 const styles = StyleSheet.create({
   container: {},
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 4,
     paddingRight: spacing.md,
     minHeight: 28,
@@ -209,15 +214,16 @@ const styles = StyleSheet.create({
   chevronHitArea: {
     width: 20,
     height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   chevron: {
-    fontSize: 10,
-    color: colors.textSecondary,
+    width: 14,
+    height: 14,
+    paddingTop: 0,
   },
   chevronExpanded: {
-    transform: [{ rotate: '90deg' }],
+    transform: [{ rotate: "90deg" }],
   },
   chevronPlaceholder: {
     width: 20,
@@ -229,7 +235,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   deprecated: {
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
     color: colors.syntaxDeprecated,
   },
   argsBadge: {
@@ -260,19 +266,19 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   argsPanelHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 3,
     paddingHorizontal: spacing.sm,
   },
   argsPanelChevron: {
-    fontSize: 8,
-    color: colors.textMuted,
+    width: 14,
+    height: 14,
     marginRight: spacing.xs,
   },
   argsPanelTitle: {
     fontSize: fonts.smallSize,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textSecondary,
   },
   argsBody: {
@@ -284,8 +290,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   argLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
   },
   argName: {
@@ -305,7 +311,7 @@ const styles = StyleSheet.create({
   argDescription: {
     fontSize: 11,
     color: colors.textMuted,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   argInput: {
     fontFamily: fonts.mono,

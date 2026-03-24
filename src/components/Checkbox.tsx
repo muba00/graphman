@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Check, Minus } from 'lucide-react';
 import { colors } from '../theme';
 
 interface CheckboxProps {
@@ -28,8 +29,8 @@ export function Checkbox({
         disabled && styles.disabled,
       ]}
     >
-      {checked && !indeterminate && <Text style={styles.checkmark}>✓</Text>}
-      {indeterminate && <View style={styles.dash} />}
+      {checked && !indeterminate && <Check size={14} color="#FFFFFF" strokeWidth={3.5} />}
+      {indeterminate && <Minus size={14} color="#FFFFFF" strokeWidth={3.5} />}
     </Pressable>
   );
 }
