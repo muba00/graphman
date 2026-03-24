@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -6,8 +6,8 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
-import { colors, fonts, spacing } from '../theme';
+} from "react-native";
+import { colors, fonts, spacing } from "../theme";
 
 interface EndpointInputProps {
   onFetchSchema: (endpoint: string) => void;
@@ -20,7 +20,7 @@ export function EndpointInput({
   loading,
   error,
 }: EndpointInputProps) {
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState("");
 
   const handleSubmit = () => {
     const trimmed = url.trim();
@@ -69,13 +69,15 @@ export function EndpointInput({
 const styles = StyleSheet.create({
   container: {
     padding: spacing.md,
+    paddingTop: 36, // Added padding to clear the macOS window traffic lights
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     backgroundColor: colors.bgSurface,
   },
   inputRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: spacing.sm,
+    alignItems: "center",
   },
   input: {
     flex: 1,
@@ -83,28 +85,29 @@ const styles = StyleSheet.create({
     fontSize: fonts.monoSize,
     color: colors.textPrimary,
     backgroundColor: colors.bgInput,
-    borderRadius: 4,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    borderRadius: 6,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
     borderWidth: 1,
     borderColor: colors.border,
+    height: 32, // Made smaller
   },
   button: {
     backgroundColor: colors.accent,
-    borderRadius: 4,
-    paddingHorizontal: spacing.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minWidth: 120,
-    height: 36,
+    borderRadius: 6,
+    paddingHorizontal: spacing.md,
+    justifyContent: "center",
+    alignItems: "center",
+    minWidth: 100,
+    height: 32, // Made smaller to match input
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: fonts.uiSize,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   errorContainer: {
     marginTop: spacing.sm,
