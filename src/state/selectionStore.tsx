@@ -1,30 +1,30 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer } from "react";
 import type {
   FieldSelection,
   OperationType,
   SchemaTreeNode,
   SelectionState,
-} from '../types/graphql';
+} from "../types/graphql";
 
 // ── Actions ──────────────────────────────────────────────────────────
 
 type Action =
   | {
-      type: 'TOGGLE_FIELD';
+      type: "TOGGLE_FIELD";
       operationType: OperationType;
       path: string[];
       children: SchemaTreeNode[];
     }
   | {
-      type: 'SET_ARGUMENT';
+      type: "SET_ARGUMENT";
       operationType: OperationType;
       path: string[];
       argName: string;
       value: string;
     }
-  | { type: 'CLEAR_SELECTIONS' }
+  | { type: "CLEAR_SELECTIONS" }
   | {
-      type: 'SELECT_SUBTREE';
+      type: "SELECT_SUBTREE";
       operationType: OperationType;
       path: string[];
       fieldNames: string[];
@@ -144,18 +144,23 @@ function withOpSelections(
 
 // ── Reducer ──────────────────────────────────────────────────────────
 
+const SELECTION_STATE_KEY = "graphman_selection_state";
+
 function selectionReducer(
   state: SelectionState,
   action: Action,
 ): SelectionState {
+  let newState: SelectionState;
+
   switch (action.type) {
-    case 'CLEAR_SELECTIONS':
-      return {
+    case "CLEAR_SELECTIONS":
+      newState = {
         ...state,
         selections: { query: {}, mutation: {}, subscription: {} },
       };
+      break;
 
-    case 'TOGGLE_FIELD': {
+    case "TOGGLE_FIELD": {
       const { operationType, path, children } = action;
       const selections = getOpSelections(state, operationType);
       const { parent, key } = getOrCreateSelection(selections, path);
@@ -177,10 +182,11 @@ function selectionReducer(
         clearSubtree(parent[key]);
       }
 
-      return withOpSelections(state, operationType, selections);
+      newState = withOpSelections(state, operationType, selections);
+      break;
     }
 
-    case 'SELECT_SUBTREE': {
+    case "SELECT_SUBTREE": {
       const { operationType, path, fieldNames } = action;
       const selections = getOpSelections(state, operationType);
 
@@ -203,10 +209,11 @@ function selectionReducer(
         }
       }
 
-      return withOpSelections(state, operationType, selections);
+      newState = withOpSelections(state, operationType, selections);
+      break;
     }
 
-    case 'SET_ARGUMENT': {
+    case "SET_ARGUMENT": {
       const { operationType, path, argName, value } = action;
       const selections = getOpSelections(state, operationType);
       const { parent, key } = getOrCreateSelection(selections, path);
@@ -215,18 +222,27 @@ function selectionReducer(
         parent[key] = { selected: false, subFields: {}, args: {} };
       }
 
-      if (value === '') {
+      if (value === "") {
         delete parent[key].args[argName];
       } else {
         parent[key].args[argName] = value;
       }
 
-      return withOpSelections(state, operationType, selections);
+      newState = withOpSelections(state, operationType, selections);
+      break;
     }
 
     default:
       return state;
   }
+
+  try {
+    localStorage.setItem(SELECTION_STATE_KEY, JSON.stringify(newState));
+  } catch (e) {
+    // ignore
+  }
+
+  return newState;
 }
 
 // ── Context ──────────────────────────────────────────────────────────
@@ -234,6 +250,18 @@ function selectionReducer(
 const initialState: SelectionState = {
   selections: { query: {}, mutation: {}, subscription: {} },
 };
+
+function loadInitialState(): SelectionState {
+  try {
+    const stored = localStorage.getItem(SELECTION_STATE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    // ignore
+  }
+  return initialState;
+}
 
 interface SelectionContextValue {
   state: SelectionState;
@@ -248,7 +276,11 @@ interface SelectionContextValue {
 const SelectionContext = createContext<SelectionContextValue | null>(null);
 
 export function SelectionProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(selectionReducer, initialState);
+  const [state, dispatch] = useReducer(
+    selectionReducer,
+    initialState,
+    loadInitialState,
+  );
 
   const isSelected = (
     operationType: OperationType,
@@ -287,7 +319,7 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
 export function useSelection(): SelectionContextValue {
   const ctx = useContext(SelectionContext);
   if (!ctx) {
-    throw new Error('useSelection must be used within a SelectionProvider');
+    throw new Error("useSelection must be used within a SelectionProvider");
   }
   return ctx;
 }
@@ -299,7 +331,7 @@ export const actions = {
     path: string[],
     children: SchemaTreeNode[],
   ): Action => ({
-    type: 'TOGGLE_FIELD',
+    type: "TOGGLE_FIELD",
     operationType,
     path,
     children,
@@ -310,19 +342,19 @@ export const actions = {
     argName: string,
     value: string,
   ): Action => ({
-    type: 'SET_ARGUMENT',
+    type: "SET_ARGUMENT",
     operationType,
     path,
     argName,
     value,
   }),
-  clearSelections: (): Action => ({ type: 'CLEAR_SELECTIONS' }),
+  clearSelections: (): Action => ({ type: "CLEAR_SELECTIONS" }),
   selectSubtree: (
     operationType: OperationType,
     path: string[],
     fieldNames: string[],
   ): Action => ({
-    type: 'SELECT_SUBTREE',
+    type: "SELECT_SUBTREE",
     operationType,
     path,
     fieldNames,

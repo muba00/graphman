@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type {
   IntrospectionSchema,
@@ -14,7 +14,7 @@ import { SelectionProvider } from "../state/selectionStore";
 import { EndpointInput } from "../components/EndpointInput";
 import { SchemaExplorer } from "../components/SchemaExplorer";
 import { QueryPreview } from "../components/QueryPreview";
-import { useAppDispatch } from "../state/appStore";
+import { useAppDispatch, useAppState } from "../state/appStore";
 import { colors, fonts, spacing } from "../theme";
 
 function QueryBuilderContent() {
@@ -22,6 +22,7 @@ function QueryBuilderContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const appDispatch = useAppDispatch();
+  const { lastEndpoint } = useAppState();
 
   const trees = useMemo(() => {
     if (!schema) {
@@ -55,6 +56,14 @@ function QueryBuilderContent() {
     },
     [appDispatch],
   );
+
+  // Auto-fetch if we have a persisted endpoint and haven't fetched yet
+  useEffect(() => {
+    if (lastEndpoint && !schema && !loading && !error) {
+      handleFetchSchema(lastEndpoint);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on initial mount
 
   return (
     <View style={styles.container}>
