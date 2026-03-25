@@ -1,5 +1,7 @@
 # Graphman — Project Guidelines
 
+**Repository**: https://github.com/muba00/graphman
+
 ## Overview
 
 Desktop GraphQL query builder (Postman-like). Users enter a GraphQL endpoint, the app fetches and parses the schema via introspection, displays fields as a checkbox tree, and generates query strings from selections.
