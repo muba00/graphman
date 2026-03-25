@@ -1,12 +1,13 @@
 <div align="center">
   <img src="app-icon.png" alt="Graphman Logo" width="128" />
 
-  # Graphman
-  **The effortless GraphQL query builder for your desktop.**
+# Graphman
 
-  [![GitHub release](https://img.shields.io/github/v/release/muba00/graphman)](https://github.com/muba00/graphman/releases)
-  [![License](https://img.shields.io/github/license/muba00/graphman)](LICENSE)
-  [![OS - macOS / Windows / Linux](https://img.shields.io/badge/os-macOS%20%7C%20Windows%20%7C%20Linux-blue)](#download-and-install)
+**The effortless GraphQL query builder for your desktop.**
+
+[![GitHub release](https://img.shields.io/github/v/release/muba00/graphman)](https://github.com/muba00/graphman/releases)
+[![License](https://img.shields.io/github/license/muba00/graphman?color=green)](LICENSE)
+[![OS - macOS / Windows / Linux](https://img.shields.io/badge/os-macOS%20%7C%20Windows%20%7C%20Linux-blue)](#download-and-install)
 
   <br />
   <img src="screenshot.png" alt="Graphman App Screenshot" width="800" />
@@ -43,28 +44,33 @@ You can easily install Graphman on your computer—no programming knowledge requ
 Want to tinker with the code? Graphman uses an ultra-fast modern stack: **React 19**, **Vite**, **TypeScript**, and **Tauri** (Rust backend).
 
 ### Prerequisites
+
 - Node.js (v18+)
 - [Rust & Cargo](https://rustup.rs/)
 
 ### Local Development
 
 **1. Clone the repo:**
+
 ```bash
 git clone https://github.com/muba00/graphman.git
 cd graphman
 ```
 
 **2. Install dependencies:**
+
 ```bash
 npm install
 ```
 
 **3. Start the development server (runs full desktop app):**
+
 ```bash
 npm run tauri dev
 ```
 
 **4. Build for release:**
+
 ```bash
 npm run tauri build
 ```
