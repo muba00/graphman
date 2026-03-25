@@ -94,10 +94,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgInput,
     borderRadius: 6,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
+    paddingVertical: 4,
     borderWidth: 1,
     borderColor: colors.border,
-    height: 32, // Made smaller
+    height: 28, // Made smaller
   },
   button: {
     backgroundColor: colors.accent,
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     minWidth: 100,
-    height: 32, // Made smaller to match input
+    height: 28, // Made smaller to match input
   },
   buttonDisabled: {
     opacity: 0.6,

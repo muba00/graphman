@@ -67,7 +67,7 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
     [dispatch, operationType, path],
   );
 
-  const leftPadding = depth * 20;
+  const leftPadding = depth * 14;
   const showArgs = selected && node.args.length > 0;
   const filledArgCount = node.args.filter(
     (a) => fieldSelection?.args[a.name],
@@ -124,7 +124,7 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
 
       {/* Arguments panel — auto-shown when field is selected */}
       {showArgs && (
-        <View style={[styles.argsPanel, { marginLeft: leftPadding + 28 }]}>
+        <View style={[styles.argsPanel, { marginLeft: leftPadding + 22 }]}>
           <Pressable
             style={styles.argsPanelHeader}
             onPress={() => setArgsCollapsed((prev) => !prev)}
@@ -209,9 +209,9 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 4,
+    paddingVertical: 2,
     paddingRight: spacing.md,
-    minHeight: 28,
+    minHeight: 24,
   },
   chevronHitArea: {
     width: 20,
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   argsPanelHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 6,
+    paddingVertical: 4,
     paddingHorizontal: spacing.sm,
     backgroundColor: colors.bgElevated,
     borderBottomWidth: 1,
@@ -334,9 +334,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgInput,
     borderRadius: 4,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
+    paddingVertical: 4,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: "transparent",
+    minHeight: 24,
   },
   argInputFilled: {
     borderColor: colors.accent,

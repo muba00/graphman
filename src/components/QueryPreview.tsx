@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.mono,
     fontSize: fonts.monoSize,
     color: colors.syntaxKeyword,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   placeholder: {
     color: colors.textMuted,

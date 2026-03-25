@@ -133,13 +133,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: spacing.sm,
-    height: 28, // Smaller height
+    height: 24, // Smaller height
     gap: spacing.xs,
   },
   searchInput: {
     flex: 1,
     fontFamily: fonts.mono,
-    fontSize: 12, // Slightly smaller font
+    fontSize: 11, // Slightly smaller font
     color: colors.textPrimary,
     height: "100%",
     padding: 0,

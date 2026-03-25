@@ -1,7 +1,7 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Check, Minus } from 'lucide-react';
-import { colors } from '../theme';
+import React from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Check, Minus } from "lucide-react";
+import { colors } from "../theme";
 
 interface CheckboxProps {
   checked: boolean;
@@ -29,7 +29,9 @@ export function Checkbox({
         disabled && styles.disabled,
       ]}
     >
-      {checked && !indeterminate && <Check size={14} color="#FFFFFF" strokeWidth={3.5} />}
+      {checked && !indeterminate && (
+        <Check size={14} color="#FFFFFF" strokeWidth={3.5} />
+      )}
       {indeterminate && <Minus size={14} color="#FFFFFF" strokeWidth={3.5} />}
     </Pressable>
   );
@@ -37,13 +39,13 @@ export function Checkbox({
 
 const styles = StyleSheet.create({
   container: {
-    width: 16,
-    height: 16,
+    width: 14,
+    height: 14,
     borderRadius: 3,
     borderWidth: 1.5,
     borderColor: colors.checkboxBorder,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   active: {
     backgroundColor: colors.checkboxChecked,
@@ -53,15 +55,15 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   checkmark: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     marginTop: -1,
   },
   dash: {
     width: 8,
     height: 2,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 1,
   },
 });
