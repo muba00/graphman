@@ -1,7 +1,8 @@
 {
   "name": "graphman",
-  "private": true,
   "version": "0.0.2",
+  "author": "Mubariz Hajimuradov",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
