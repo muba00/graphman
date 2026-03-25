@@ -25,7 +25,7 @@ jobs:
                         tag_name: context.ref.replace('refs/tags/', ''),
                         name: `GraphMan ${context.ref.replace('refs/tags/', '')}`,
                         body: 'See the attached assets for the corresponding platform.',
-                        draft: true,
+                        draft: false,
                         prerelease: false
                       })
                       return data.id
