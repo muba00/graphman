@@ -24,7 +24,7 @@ jobs:
               repo: context.repo.repo,
               tag_name: context.ref.replace('refs/tags/', ''),
               name: `Graphman ${context.ref.replace('refs/tags/', '')}`,
-              body: 'See the attached assets for the corresponding platform.\n\n### 🍎 macOS users\n\nBefore opening the app, you need to run the following in Terminal:\n`xattr -cr /Applications/Graphman.app`',
+              body: 'See the attached assets for the corresponding platform.\n\n###  macOS users\n\nBefore opening the app, you need to run the following in Terminal:\n`xattr -cr /Applications/Graphman.app`',
               draft: false,
               prerelease: false
             })
