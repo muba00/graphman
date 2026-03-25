@@ -34,8 +34,18 @@ Whether you're a non-technical user exploring an API, or a developer composing a
 You can easily install Graphman on your computer—no programming knowledge required!
 
 1. Go to the [**Releases**](https://github.com/muba00/graphman/releases) page.
-2. Download the installer for your operating system (macOS `.dmg` / `.app`, Windows `.exe`, or Linux `.AppImage`).
+2. Download the installer for your operating system (macOS `.dmg`, Windows `.exe`, or Linux `.AppImage`).
 3. Run the installer and launch the app!
+
+### 🍎 macOS users
+
+1. Move **Graphman.app** to your **Applications** folder.
+2. Open **Terminal**.
+3. Paste this command and press Enter:
+   ```bash
+   xattr -cr /Applications/Graphman.app
+   ```
+4. Double-click the app to open it!
 
 ---
 
