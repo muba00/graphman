@@ -148,7 +148,7 @@ function QueryBuilderContent() {
         </View>
       ) : (
         <View style={styles.welcomeContainer}>
-          <Text style={styles.welcomeTitle}>GraphMan</Text>
+          <Text style={styles.welcomeTitle}>Graphman</Text>
           <Text style={styles.welcomeSubtitle}>
             Enter a GraphQL endpoint above to explore the schema
             {"\n"}and build queries with checkboxes.

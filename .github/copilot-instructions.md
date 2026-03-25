@@ -1,4 +1,4 @@
-# GraphMan — Project Guidelines
+# Graphman — Project Guidelines
 
 ## Overview
 

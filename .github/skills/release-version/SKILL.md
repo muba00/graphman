@@ -1,11 +1,11 @@
 ---
 name: release-version
-description: "Workflow for releasing a new version of the GraphMan app. Use when the user wants to bump the version, create a release, or publish a new version."
+description: "Workflow for releasing a new version of the Graphman app. Use when the user wants to bump the version, create a release, or publish a new version."
 ---
 
 # Releasing a New Version
 
-To automatically build and distribute a new release of GraphMan across macOS, Linux, and Windows:
+To automatically build and distribute a new release of Graphman across macOS, Linux, and Windows:
 
 1. **Bump Version:** Update the version number in both `package.json` and `src-tauri/tauri.conf.json`.
 2. **Commit:** Commit the version changes (e.g., `git commit -am "chore: bump version to v1.0.1"`).
