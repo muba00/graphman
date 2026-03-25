@@ -1,0 +1,53 @@
+name: Release
+on:
+    push:
+        tags:
+            - "v*"
+
+jobs:
+    release:
+        permissions:
+            contents: write
+        strategy:
+            fail-fast: false
+            matrix:
+                platform: [macos-latest, ubuntu-22.04, windows-latest]
+        runs-on: ${{ matrix.platform }}
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install dependencies (ubuntu only)
+              if: matrix.platform == 'ubuntu-22.04'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "lts/*"
+
+            - name: Install frontend dependencies
+              run: npm install
+
+            - name: Setup Rust
+              uses: dtolnay/rust-toolchain@stable
+
+            # Required for macOS universal builds
+            - name: Add Rust macos targets
+              if: matrix.platform == 'macos-latest'
+              run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+            - name: Build and Release app
+              uses: tauri-apps/tauri-action@v0
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  tagName: ${{ github.ref_name }}
+                  releaseName: "GraphMan ${{ github.ref_name }}"
+                  releaseBody: "See the attached assets for the corresponding platform."
+                  releaseDraft: true
+                  prerelease: false
+                  args: ${{ matrix.platform == 'macos-latest' && '--target universal-apple-darwin' || '' }}
