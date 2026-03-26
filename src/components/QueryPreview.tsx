@@ -45,6 +45,7 @@ export function QueryPreview({
 
   const hasError = queryError !== null;
   const hasSuccess = queryResult !== null && !hasError;
+  const hasVariables = Object.keys(variables).length > 0;
 
   const formattedResult = useMemo(() => {
     if (queryResult === null) return null;
@@ -94,6 +95,9 @@ export function QueryPreview({
                     ]}
                   />
                 )}
+              {tab === "variables" && hasVariables && (
+                <View style={[styles.dot, styles.dotSuccess]} />
+              )}
             </Pressable>
           ))}
         </View>
