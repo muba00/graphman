@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Graphman",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "identifier": "com.mubariz.graphman",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -25,7 +25,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["dmg", "nsis", "appimage"],
+    "targets": ["dmg", "macos", "nsis", "appimage"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -38,7 +38,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlBNTM2OUI1RUFFMDU3NApSV1IwQmE1ZW16YWxDWlhRc3dmZjdIcnZLTU9hWUVVdlNZc2Q5b1VpS0xtYWtNa1FTbS85Wjh0TQo=",
       "endpoints": [
-        "https://github.com/muba00/graphman/releases/latest/download/updater.json"
+        "https://github.com/muba00/graphman/releases/latest/download/latest.json"
       ]
     }
   }
