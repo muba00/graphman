@@ -10,6 +10,7 @@ export default function App() {
           flexDirection: "column",
           height: "100vh",
           width: "100vw",
+          overflow: "hidden",
         }}
       >
         <QueryBuilderScreen />

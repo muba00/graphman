@@ -65,12 +65,23 @@ function QueryBuilderContent() {
       }
     };
 
+    const handleWindowResize = () => {
+      const maxWidth = window.innerWidth - 300;
+      if (currentLeftWidth.current > maxWidth) {
+        const clamped = Math.max(250, maxWidth);
+        setLeftWidth(clamped);
+        currentLeftWidth.current = clamped;
+      }
+    };
+
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("resize", handleWindowResize);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("resize", handleWindowResize);
     };
   }, []);
 
@@ -171,19 +182,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bg,
+    overflow: "hidden",
   },
   mainContent: {
     flex: 1,
     flexDirection: "row",
     position: "relative",
+    overflow: "hidden",
   },
   explorerPanel: {
     minWidth: 250,
     backgroundColor: colors.bg, // ensuring clean background behind nodes
+    overflow: "hidden",
   },
   previewPanel: {
     flex: 1,
     minWidth: 300,
+    overflow: "hidden",
   },
   welcomeContainer: {
     flex: 1,

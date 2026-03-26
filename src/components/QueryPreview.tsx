@@ -11,7 +11,7 @@ interface QueryPreviewProps {
 
 export function QueryPreview({ trees }: QueryPreviewProps) {
   const { state } = useSelection();
-  // Reasonable default based on window height, falling back to 400
+  const containerRef = useRef<HTMLDivElement>(null);
   const [topHeight, setTopHeight] = useState(() => {
     if (typeof window === "undefined") return 400;
     const saved = localStorage.getItem("graphman_topHeight");
@@ -28,15 +28,19 @@ export function QueryPreview({ trees }: QueryPreviewProps) {
   );
 
   useEffect(() => {
+    const getMaxHeight = () => {
+      // Use the container's actual height so Variables always gets at least 100px + its header
+      const containerH =
+        containerRef.current?.clientHeight ?? window.innerHeight;
+      return Math.max(100, containerH - 134); // 134 = variables header (~30) + minHeight (100) + handle (4)
+    };
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!dragInfo.current.isDragging) return;
 
       const dy = e.clientY - dragInfo.current.startY;
       const newHeight = Math.max(100, dragInfo.current.startHeight + dy);
-
-      // Rough max height: Window height minus some allowance for top bar and variables header
-      const maxHeight = window.innerHeight - 150;
-      const finalHeight = Math.min(newHeight, maxHeight);
+      const finalHeight = Math.min(newHeight, getMaxHeight());
       setTopHeight(finalHeight);
       currentTopHeight.current = finalHeight;
     };
@@ -53,17 +57,28 @@ export function QueryPreview({ trees }: QueryPreviewProps) {
       }
     };
 
+    const handleWindowResize = () => {
+      const max = getMaxHeight();
+      if (currentTopHeight.current > max) {
+        const clamped = Math.max(100, max);
+        setTopHeight(clamped);
+        currentTopHeight.current = clamped;
+      }
+    };
+
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("resize", handleWindowResize);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("resize", handleWindowResize);
     };
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} ref={containerRef as any}>
       <View style={[styles.querySection, { height: topHeight }]}>
         <View style={styles.header}>
           <Text style={styles.headerText}>Generated Query</Text>
@@ -124,18 +139,20 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgSurface,
     display: "flex",
     flexDirection: "column",
+    overflow: "hidden",
   },
   querySection: {
-    // Removed flex: 2 so height style takes precedence
     minHeight: 100,
     display: "flex",
     flexDirection: "column",
+    overflow: "hidden",
   },
   variablesSection: {
     flex: 1,
     minHeight: 100,
     display: "flex",
     flexDirection: "column",
+    overflow: "hidden",
   },
   header: {
     paddingHorizontal: spacing.md,
