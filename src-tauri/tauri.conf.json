@@ -36,7 +36,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlBNTM2OUI1RUFFMDU3NApSV1IwQmE1ZW16YWxDWlhRc3dmZjdIcnZLTU9hWUVVdlNZc2Q5b1VpS0xtYWtNa1FTbS85Wjh0TQo=",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVENzZFMkY0MkNGRkFFMUUKUldRZXJ2OHM5T0oyN1F5b2Z2L3NhT3VScUtGWk14Q0tydVZUbmpLWTJqNU5UMXBGMWl4THFycjQK",
       "endpoints": [
         "https://github.com/muba00/graphman/releases/latest/download/latest.json"
       ]
