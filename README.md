@@ -1,88 +1,65 @@
 <div align="center">
-  <img src="app-icon.png" alt="Graphman Logo" width="128" />
+  <img src="app-icon.png" alt="Graphman" width="128" />
 
 # Graphman
 
-**The effortless GraphQL query builder for your desktop.**
+**See the schema. Check the boxes. Get the query.**
 
 [![GitHub release](https://img.shields.io/github/v/release/muba00/graphman)](https://github.com/muba00/graphman/releases)
 [![License](https://img.shields.io/github/license/muba00/graphman?color=green)](LICENSE)
-[![OS - macOS / Windows / Linux](https://img.shields.io/badge/os-macOS%20%7C%20Windows%20%7C%20Linux-blue)](#download-and-install)
+[![macOS / Windows / Linux](https://img.shields.io/badge/os-macOS%20%7C%20Windows%20%7C%20Linux-blue)](#install)
 
-  <br />
-  <img src="screenshot.png" alt="Graphman App Screenshot" width="800" />
+<br />
+<img src="screenshot.png" alt="Graphman" width="800" />
 </div>
 
-## 🌟 What is Graphman?
+<br />
 
-Graphman is an intuitive, fast, and lightweight desktop application designed to make working with GraphQL APIs incredibly simple. Just think of it like Postman, but optimized entirely for GraphQL!
+A desktop GraphQL client that gets out of your way. Paste an endpoint, explore the schema visually, and build queries by selecting fields — no typing required.
 
-Whether you're a non-technical user exploring an API, or a developer composing a complex query, Graphman has you covered.
+## Why Graphman
 
-## ✨ Features
+Most API tools weren't built for GraphQL. You end up writing raw queries against schemas you don't know, guessing field names, and fighting autocomplete.
 
-- **🔌 Simple Endpoint connection:** Just paste your GraphQL endpoint URL, and Graphman handles the rest.
-- **🌳 Interactive Checkbox Tree:** No need to construct queries by hand. Graphman automatically fetches the API schema and displays all available fields as a simple, clickable checkbox tree.
-- **⚡️ Smart Query Generation:** Select the fields you want to see, and the app instantly generates the exact GraphQL query string you need.
-- **🚀 Lightning Fast Native App:** Built securely for your OS using Rust (Tauri), ensuring a smooth, responsive experience with zero bloat and low memory consumption.
-- **🔐 Private & Secure:** Your queries stay on your machine. Graphman talks directly to your APIs without any tracking or middleman servers.
+Graphman takes a different approach: it introspects the endpoint, renders the full schema as a navigable tree, and lets you compose queries by checking boxes. The query updates as you click.
 
----
+## Features
 
-## 🚀 Download and Install
+|                                |                                                                                                                               |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Schema explorer**            | Introspects your endpoint and displays queries, mutations, and subscriptions as an expandable tree with lazy-loaded children. |
+| **Visual query builder**       | Select fields with checkboxes. Arguments, nested objects, and variables are handled automatically.                            |
+| **Authorization**              | Bearer token input with show/hide toggle, sent on every request.                                                              |
+| **Query runner**               | Execute queries and inspect JSON responses in-app.                                                                            |
+| **Syntax-highlighted preview** | Live-updating query preview with copy support.                                                                                |
+| **Native & private**           | Built with Tauri (Rust). No Electron, no telemetry, no accounts. Runs entirely on your machine.                               |
 
-You can easily install Graphman on your computer—no programming knowledge required!
+## Install
 
-1. Go to the [**Releases**](https://github.com/muba00/graphman/releases) page.
-2. Download the installer for your operating system (macOS `.dmg`, Windows `.exe`, or Linux `.AppImage`).
-3. Run the installer and launch the app!
+Download the latest release for your platform:
 
-###  macOS users
+**[Releases →](https://github.com/muba00/graphman/releases)**
 
-Before opening the app, you need to run the following in Terminal:
+| Platform | Format      |
+| -------- | ----------- |
+| macOS    | `.dmg`      |
+| Windows  | `.exe`      |
+| Linux    | `.AppImage` |
 
-```bash
-xattr -cr /Applications/Graphman.app
-```
+> **macOS:** After installing, run `xattr -cr /Applications/Graphman.app` in Terminal to clear the quarantine flag.
 
----
+## Build from source
 
-## 💻 For Developers: Build from Source
-
-Want to tinker with the code? Graphman uses an ultra-fast modern stack: **React 19**, **Vite**, **TypeScript**, and **Tauri** (Rust backend).
-
-### Prerequisites
-
-- Node.js (v18+)
-- [Rust & Cargo](https://rustup.rs/)
-
-### Local Development
-
-**1. Clone the repo:**
+Requires **Node.js 18+** and **[Rust](https://rustup.rs/)**.
 
 ```bash
 git clone https://github.com/muba00/graphman.git
 cd graphman
-```
-
-**2. Install dependencies:**
-
-```bash
 npm install
+npm run tauri dev     # development
+npm run tauri build   # production build
 ```
 
-**3. Start the development server (runs full desktop app):**
+## Contributing
 
-```bash
-npm run tauri dev
-```
-
-**4. Build for release:**
-
-```bash
-npm run tauri build
-```
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are always welcome! Feel free to check the [issues page](https://github.com/muba00/graphman/issues).
+Issues and pull requests are welcome on the [issues page](https://github.com/muba00/graphman/issues).
