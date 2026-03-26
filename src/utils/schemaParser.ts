@@ -6,7 +6,7 @@ import type {
   IntrospectionTypeRef,
   OperationType,
   SchemaTreeNode,
-} from '../types/graphql';
+} from "../types/graphql";
 
 /**
  * Unwrap NON_NULL and LIST wrappers to get the named (leaf) type.
@@ -25,13 +25,13 @@ export function unwrapType(
  * Build a human-readable type string, e.g. "[Post!]!" or "String".
  */
 export function typeRefToString(typeRef: IntrospectionTypeRef): string {
-  if (typeRef.kind === 'NON_NULL') {
+  if (typeRef.kind === "NON_NULL") {
     return `${typeRefToString(typeRef.ofType!)}!`;
   }
-  if (typeRef.kind === 'LIST') {
+  if (typeRef.kind === "LIST") {
     return `[${typeRefToString(typeRef.ofType!)}]`;
   }
-  return typeRef.name ?? 'Unknown';
+  return typeRef.name ?? "Unknown";
 }
 
 /**
@@ -41,9 +41,9 @@ export function typeRefToString(typeRef: IntrospectionTypeRef): string {
 function hasSelectableFields(typeRef: IntrospectionTypeRef): boolean {
   const named = unwrapType(typeRef);
   return (
-    named.kind === 'OBJECT' ||
-    named.kind === 'INTERFACE' ||
-    named.kind === 'UNION'
+    named.kind === "OBJECT" ||
+    named.kind === "INTERFACE" ||
+    named.kind === "UNION"
   );
 }
 
@@ -54,7 +54,7 @@ function isArgRequired(arg: {
   type: IntrospectionTypeRef;
   defaultValue: string | null;
 }): boolean {
-  return arg.type.kind === 'NON_NULL' && arg.defaultValue === null;
+  return arg.type.kind === "NON_NULL" && arg.defaultValue === null;
 }
 
 /**
@@ -64,14 +64,14 @@ function findType(
   schema: IntrospectionSchema,
   name: string,
 ): IntrospectionType | undefined {
-  return schema.types.find(t => t.name === name);
+  return schema.types.find((t) => t.name === name);
 }
 
 /**
  * Convert an IntrospectionField to an ArgumentNode list.
  */
 function buildArgs(field: IntrospectionField): ArgumentNode[] {
-  return field.args.map(arg => ({
+  return field.args.map((arg) => ({
     name: arg.name,
     description: arg.description,
     typeString: typeRefToString(arg.type),
@@ -107,16 +107,16 @@ export function buildTreeNodes(
   }
 
   // Skip internal introspection types
-  if (typeName.startsWith('__')) {
+  if (typeName.startsWith("__")) {
     return [];
   }
 
-  return type.fields.map(field => {
+  return type.fields.map((field) => {
     const namedType = unwrapType(field.type);
-    const namedTypeName = namedType.name ?? '';
+    const namedTypeName = namedType.name ?? "";
     const fieldPath = parentPath ? `${parentPath}.${field.name}` : field.name;
     const canExpand =
-      hasSelectableFields(field.type) && !namedTypeName.startsWith('__');
+      hasSelectableFields(field.type) && !namedTypeName.startsWith("__");
 
     let children: SchemaTreeNode[] = [];
     if (canExpand && !visited.has(namedTypeName)) {
@@ -137,6 +137,7 @@ export function buildTreeNodes(
       typeString: typeRefToString(field.type),
       description: field.description,
       hasSubFields: canExpand,
+      namedTypeName,
       kind: namedType.kind,
       args: buildArgs(field),
       children,
@@ -154,11 +155,11 @@ export function getRootTypeName(
   operation: OperationType,
 ): string | null {
   switch (operation) {
-    case 'query':
+    case "query":
       return schema.queryType?.name ?? null;
-    case 'mutation':
+    case "mutation":
       return schema.mutationType?.name ?? null;
-    case 'subscription':
+    case "subscription":
       return schema.subscriptionType?.name ?? null;
   }
 }
@@ -174,7 +175,7 @@ export function buildOperationTree(
   if (!rootTypeName) {
     return [];
   }
-  return buildTreeNodes(schema, rootTypeName, '');
+  return buildTreeNodes(schema, rootTypeName, "");
 }
 
 /**
@@ -185,13 +186,13 @@ export function getAvailableOperations(
 ): OperationType[] {
   const ops: OperationType[] = [];
   if (schema.queryType) {
-    ops.push('query');
+    ops.push("query");
   }
   if (schema.mutationType) {
-    ops.push('mutation');
+    ops.push("mutation");
   }
   if (schema.subscriptionType) {
-    ops.push('subscription');
+    ops.push("subscription");
   }
   return ops;
 }

@@ -121,15 +121,34 @@ function buildSelectionSet(
       node.children,
     );
 
-    if (node.hasSubFields && hasSelectedChildren) {
-      const childSelections = buildSelectionSet(
-        selection.subFields,
-        node.children,
-        depth + 1,
-        currentPath,
-        variableDefs,
-      );
-      result += `${indent}${node.name}${argsString} {\n${childSelections}${indent}}\n`;
+    if (node.hasSubFields) {
+      if (node.children.length > 0) {
+        // Eagerly-built children: only emit if at least one child is selected
+        if (!hasSelectedChildren) {
+          continue; // Object type with no sub-selection is invalid — skip it
+        }
+        const childSelections = buildSelectionSet(
+          selection.subFields,
+          node.children,
+          depth + 1,
+          currentPath,
+          variableDefs,
+        );
+        result += `${indent}${node.name}${argsString} {\n${childSelections}${indent}}\n`;
+      } else {
+        // Cycle-cut node: children weren't pre-built; derive selection set
+        // directly from what's stored in subFields (populated by lazy expansion)
+        const childSelections = buildSelectionSetFromState(
+          selection.subFields,
+          depth + 1,
+          currentPath,
+          variableDefs,
+        );
+        if (!childSelections.trim()) {
+          continue; // Nothing selected inside — skip to avoid invalid bare field
+        }
+        result += `${indent}${node.name}${argsString} {\n${childSelections}${indent}}\n`;
+      }
     } else {
       result += `${indent}${node.name}${argsString}\n`;
     }
@@ -198,4 +217,45 @@ function hasAnySelectedChild(
     }
   }
   return false;
+}
+
+/**
+ * Build a selection set string purely from selection state, without schema nodes.
+ * Used for cycle-cut nodes whose children weren't pre-built but are tracked in state
+ * (populated when the user lazily expands a circular reference in the UI).
+ */
+function buildSelectionSetFromState(
+  subFields: Record<string, FieldSelection>,
+  depth: number,
+  path: string[],
+  variableDefs: Record<string, VariableDef>,
+): string {
+  const indent = "  ".repeat(depth);
+  let result = "";
+
+  for (const [fieldName, selection] of Object.entries(subFields)) {
+    if (!selection.selected) continue;
+
+    const currentPath = [...path, fieldName];
+    const hasChildren = Object.values(selection.subFields).some(
+      (s) => s.selected,
+    );
+
+    if (hasChildren) {
+      const childSelections = buildSelectionSetFromState(
+        selection.subFields,
+        depth + 1,
+        currentPath,
+        variableDefs,
+      );
+      if (childSelections.trim()) {
+        result += `${indent}${fieldName} {\n${childSelections}${indent}}\n`;
+      }
+      // If childSelections is empty, skip — object field with no sub-selection is invalid
+    } else {
+      result += `${indent}${fieldName}\n`;
+    }
+  }
+
+  return result;
 }

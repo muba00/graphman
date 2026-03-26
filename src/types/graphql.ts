@@ -23,14 +23,14 @@ export interface IntrospectionSchema {
 // ── Type kinds ───────────────────────────────────────────────────────
 
 export type TypeKind =
-  | 'SCALAR'
-  | 'OBJECT'
-  | 'INTERFACE'
-  | 'UNION'
-  | 'ENUM'
-  | 'INPUT_OBJECT'
-  | 'LIST'
-  | 'NON_NULL';
+  | "SCALAR"
+  | "OBJECT"
+  | "INTERFACE"
+  | "UNION"
+  | "ENUM"
+  | "INPUT_OBJECT"
+  | "LIST"
+  | "NON_NULL";
 
 // ── Type references (recursive wrapper types) ────────────────────────
 
@@ -101,8 +101,10 @@ export interface SchemaTreeNode {
   kind: TypeKind;
   /** Arguments this field accepts */
   args: ArgumentNode[];
-  /** Child fields (populated when expanded or pre-built) */
+  /** Child fields (eagerly built; empty when cut off by cycle detection) */
   children: SchemaTreeNode[];
+  /** The unwrapped named type, e.g. "Item" — used for lazy expansion */
+  namedTypeName: string;
   /** Is this field deprecated? */
   isDeprecated: boolean;
   /** Deprecation reason */
@@ -120,7 +122,7 @@ export interface ArgumentNode {
 
 // ── Selection state ──────────────────────────────────────────────────
 
-export type OperationType = 'query' | 'mutation' | 'subscription';
+export type OperationType = "query" | "mutation" | "subscription";
 
 export interface FieldSelection {
   selected: boolean;

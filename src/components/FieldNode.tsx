@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { ChevronRight } from "lucide-react";
 import { useSelection, actions } from "../state/selectionStore";
@@ -7,8 +7,10 @@ import type {
   OperationType,
   SchemaTreeNode,
 } from "../types/graphql";
+import { buildTreeNodes } from "../utils/schemaParser";
 import { colors, fonts, spacing } from "../theme";
 import { Checkbox } from "./Checkbox";
+import { SchemaContext } from "./SchemaExplorer";
 
 interface FieldNodeProps {
   node: SchemaTreeNode;
@@ -22,7 +24,11 @@ interface FieldNodeProps {
  */
 export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
   const { dispatch, isSelected, getFieldSelection } = useSelection();
+  const schema = useContext(SchemaContext);
   const [expanded, setExpanded] = useState(false);
+  const [lazyChildren, setLazyChildren] = useState<SchemaTreeNode[] | null>(
+    null,
+  );
 
   const path = useMemo(() => node.path.split("."), [node.path]);
   const selected = isSelected(operationType, path);
@@ -41,7 +47,9 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
   }, [selected, node, fieldSelection]);
 
   const handleToggle = useCallback(() => {
-    dispatch(actions.toggleField(operationType, path, node.children));
+    const children =
+      node.children.length > 0 ? node.children : (lazyChildren ?? []);
+    dispatch(actions.toggleField(operationType, path, children));
     // Auto-expand when selecting a field with sub-fields or args
     if (!selected && (node.hasSubFields || node.args.length > 0)) {
       setExpanded(true);
@@ -54,11 +62,33 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
     node.hasSubFields,
     node.args.length,
     node.children,
+    lazyChildren,
   ]);
 
   const handleExpandToggle = useCallback(() => {
-    setExpanded((prev) => !prev);
-  }, []);
+    setExpanded((prev) => {
+      const next = !prev;
+      // Lazily build children the first time a cycle node is expanded
+      if (
+        next &&
+        node.hasSubFields &&
+        node.children.length === 0 &&
+        lazyChildren === null &&
+        schema
+      ) {
+        setLazyChildren(
+          buildTreeNodes(
+            schema,
+            node.namedTypeName,
+            node.path,
+            new Set([node.namedTypeName]),
+            8,
+          ),
+        );
+      }
+      return next;
+    });
+  }, [node, lazyChildren, schema]);
 
   const handleArgChange = useCallback(
     (argName: string, value: string) => {
@@ -72,6 +102,8 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
   const filledArgCount = node.args.filter(
     (a) => fieldSelection?.args[a.name],
   ).length;
+  const childrenToRender =
+    node.children.length > 0 ? node.children : (lazyChildren ?? []);
 
   return (
     <View style={styles.container}>
@@ -144,9 +176,9 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
         </View>
       )}
 
-      {/* Children */}
+      {/* Children (eagerly built, or lazily built on first expand) */}
       {expanded &&
-        node.children.map((child) => (
+        childrenToRender.map((child) => (
           <FieldNode
             key={child.path}
             node={child}

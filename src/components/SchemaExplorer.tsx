@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { createContext, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Search } from "lucide-react";
 import type {
@@ -12,6 +12,8 @@ import {
 } from "../utils/schemaParser";
 import { FieldNode } from "./FieldNode";
 import { colors, fonts, spacing } from "../theme";
+
+export const SchemaContext = createContext<IntrospectionSchema | null>(null);
 
 interface SchemaExplorerProps {
   schema: IntrospectionSchema;
@@ -67,51 +69,53 @@ export function SchemaExplorer({ schema }: SchemaExplorerProps) {
   const ops = availableOps.filter((op) => filteredTrees[op]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <View style={styles.searchWrapper}>
-          <Search size={14} color={colors.textMuted} />
-          <TextInput
-            style={styles.searchInput}
-            value={searchTerm}
-            onChangeText={setSearchTerm}
-            placeholder="Filter fields..."
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+    <SchemaContext.Provider value={schema}>
+      <View style={styles.container}>
+        <View style={styles.searchContainer}>
+          <View style={styles.searchWrapper}>
+            <Search size={14} color={colors.textMuted} />
+            <TextInput
+              style={styles.searchInput}
+              value={searchTerm}
+              onChangeText={setSearchTerm}
+              placeholder="Filter fields..."
+              placeholderTextColor={colors.textMuted}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
         </View>
-      </View>
 
-      {ops.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>
-            {searchTerm.trim()
-              ? "No fields match your search."
-              : "No operations available."}
-          </Text>
-        </View>
-      ) : (
-        <ScrollView
-          style={styles.treeScroll}
-          contentContainerStyle={styles.treeContent}
-        >
-          {ops.map((op) => (
-            <View key={op} style={styles.section}>
-              <Text style={styles.sectionTitle}>{sectionLabels[op]}</Text>
-              {filteredTrees[op]!.map((node) => (
-                <FieldNode
-                  key={node.path}
-                  node={node}
-                  depth={0}
-                  operationType={op}
-                />
-              ))}
-            </View>
-          ))}
-        </ScrollView>
-      )}
-    </View>
+        {ops.length === 0 ? (
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>
+              {searchTerm.trim()
+                ? "No fields match your search."
+                : "No operations available."}
+            </Text>
+          </View>
+        ) : (
+          <ScrollView
+            style={styles.treeScroll}
+            contentContainerStyle={styles.treeContent}
+          >
+            {ops.map((op) => (
+              <View key={op} style={styles.section}>
+                <Text style={styles.sectionTitle}>{sectionLabels[op]}</Text>
+                {filteredTrees[op]!.map((node) => (
+                  <FieldNode
+                    key={node.path}
+                    node={node}
+                    depth={0}
+                    operationType={op}
+                  />
+                ))}
+              </View>
+            ))}
+          </ScrollView>
+        )}
+      </View>
+    </SchemaContext.Provider>
   );
 }
 
