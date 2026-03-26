@@ -52,6 +52,13 @@ export function QueryPreview({
     }
   }, [queryLoading]);
 
+  // Auto-switch to the Query tab when the query changes
+  useEffect(() => {
+    if (queryText) {
+      setActiveTab("query");
+    }
+  }, [queryText]);
+
   const hasError = queryError !== null;
   const hasSuccess = queryResult !== null && !hasError;
   const hasVariables = Object.keys(variables).length > 0;
