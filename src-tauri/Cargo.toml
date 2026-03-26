@@ -1,6 +1,6 @@
 [package]
 name = "graphman"
-version = "0.0.20"
+version = "0.0.21"
 description = "Desktop GraphQL query builder"
 authors = ["Mubariz Hajimuradov"]
 edition = "2021"
