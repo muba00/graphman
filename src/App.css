@@ -10,6 +10,12 @@ body,
   background-color: #1e1e1e;
 }
 
+/* Remove browser focus ring from all inputs — theming is handled in-component */
+input:focus,
+textarea:focus {
+  outline: none;
+}
+
 .resize-handle {
   width: 1px;
   padding: 0 4px; /* Increases hit area to 9px */

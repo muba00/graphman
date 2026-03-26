@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useSelection, actions } from "../state/selectionStore";
 import type {
   ArgumentNode,
@@ -23,7 +23,6 @@ interface FieldNodeProps {
 export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
   const { dispatch, isSelected, getFieldSelection } = useSelection();
   const [expanded, setExpanded] = useState(false);
-  const [argsCollapsed, setArgsCollapsed] = useState(false);
 
   const path = useMemo(() => node.path.split("."), [node.path]);
   const selected = isSelected(operationType, path);
@@ -43,8 +42,8 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
 
   const handleToggle = useCallback(() => {
     dispatch(actions.toggleField(operationType, path, node.children));
-    // Auto-expand when selecting a field with sub-fields
-    if (!selected && node.hasSubFields) {
+    // Auto-expand when selecting a field with sub-fields or args
+    if (!selected && (node.hasSubFields || node.args.length > 0)) {
       setExpanded(true);
     }
   }, [
@@ -53,6 +52,7 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
     path,
     selected,
     node.hasSubFields,
+    node.args.length,
     node.children,
   ]);
 
@@ -67,17 +67,23 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
     [dispatch, operationType, path],
   );
 
+  const hasExpandableContent = node.hasSubFields || node.args.length > 0;
   const leftPadding = depth * 14;
-  const showArgs = selected && node.args.length > 0;
   const filledArgCount = node.args.filter(
     (a) => fieldSelection?.args[a.name],
   ).length;
 
   return (
     <View style={styles.container}>
-      <View style={[styles.row, { paddingLeft: leftPadding }]}>
+      <View
+        style={[
+          styles.row,
+          { paddingLeft: leftPadding },
+          selected && styles.rowSelected,
+        ]}
+      >
         {/* Expand/collapse chevron */}
-        {node.hasSubFields ? (
+        {hasExpandableContent ? (
           <Pressable onPress={handleExpandToggle} style={styles.chevronHitArea}>
             <View style={[styles.chevron, expanded && styles.chevronExpanded]}>
               <ChevronRight size={14} color={colors.textSecondary} />
@@ -122,35 +128,19 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
         <Text style={styles.typeLabel}>{node.typeString}</Text>
       </View>
 
-      {/* Arguments panel — auto-shown when field is selected */}
-      {showArgs && (
-        <View style={[styles.argsPanel, { marginLeft: leftPadding + 22 }]}>
-          <Pressable
-            style={styles.argsPanelHeader}
-            onPress={() => setArgsCollapsed((prev) => !prev)}
-          >
-            <View style={styles.argsPanelChevron}>
-              {argsCollapsed ? (
-                <ChevronRight size={14} color={colors.textSecondary} />
-              ) : (
-                <ChevronDown size={14} color={colors.textSecondary} />
-              )}
-            </View>
-            <Text style={styles.argsPanelTitle}>Arguments</Text>
-          </Pressable>
-
-          {!argsCollapsed && (
-            <View style={styles.argsBody}>
-              {node.args.map((arg) => (
-                <ArgumentRow
-                  key={arg.name}
-                  arg={arg}
-                  value={fieldSelection?.args[arg.name] ?? ""}
-                  onChange={handleArgChange}
-                />
-              ))}
-            </View>
-          )}
+      {/* Arguments panel — visible when node is expanded */}
+      {expanded && node.args.length > 0 && (
+        <View style={[styles.argsPanel, { marginLeft: leftPadding + 36 }]}>
+          <View style={styles.argsBody}>
+            {node.args.map((arg) => (
+              <ArgumentRow
+                key={arg.name}
+                arg={arg}
+                value={fieldSelection?.args[arg.name] ?? ""}
+                onChange={handleArgChange}
+              />
+            ))}
+          </View>
         </View>
       )}
 
@@ -209,13 +199,16 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 2,
-    paddingRight: spacing.md,
-    minHeight: 24,
+    paddingVertical: 4,
+    paddingRight: spacing.xl,
+    minHeight: 28,
+  },
+  rowSelected: {
+    backgroundColor: "rgba(0, 122, 204, 0.06)",
   },
   chevronHitArea: {
-    width: 20,
-    height: 20,
+    width: 22,
+    height: 22,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -228,7 +221,7 @@ const styles = StyleSheet.create({
     transform: [{ rotate: "90deg" }],
   },
   chevronPlaceholder: {
-    width: 20,
+    width: 22,
   },
   fieldName: {
     fontFamily: fonts.mono,
@@ -246,6 +239,8 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     paddingHorizontal: 5,
     paddingVertical: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   argsBadgeText: {
     fontFamily: fonts.mono,
@@ -259,48 +254,26 @@ const styles = StyleSheet.create({
     fontFamily: fonts.mono,
     fontSize: fonts.smallSize,
     color: colors.syntaxType,
-    marginLeft: spacing.sm,
+    marginLeft: "auto" as unknown as number,
   },
   argsPanel: {
-    marginTop: 2,
+    marginTop: spacing.xs,
     marginBottom: spacing.sm,
-    backgroundColor: colors.bgSurface,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginRight: spacing.md,
-    overflow: "hidden",
-  },
-  argsPanelHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 4,
-    paddingHorizontal: spacing.sm,
-    backgroundColor: colors.bgElevated,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  argsPanelChevron: {
-    width: 14,
-    height: 14,
-    marginRight: spacing.xs,
-  },
-  argsPanelTitle: {
-    fontSize: fonts.smallSize,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    textTransform: "uppercase",
+    marginRight: spacing.xl,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.accentMuted,
+    paddingLeft: spacing.md,
   },
   argsBody: {
-    padding: spacing.sm,
     gap: spacing.md,
+    paddingVertical: spacing.sm,
   },
   argRow: {
     gap: spacing.xs,
   },
   argHeaderContainer: {
     gap: 2,
-    marginBottom: 2,
+    marginBottom: spacing.xs,
   },
   argLabelRow: {
     flexDirection: "row",
@@ -321,11 +294,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.mono,
     fontSize: 11,
     color: colors.syntaxType,
+    opacity: 0.7,
   },
   argDescription: {
     fontSize: 11,
     color: colors.textMuted,
-    lineHeight: 14,
+    lineHeight: 15,
   },
   argInput: {
     fontFamily: fonts.mono,
@@ -333,14 +307,13 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     backgroundColor: colors.bgInput,
     borderRadius: 4,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
     borderWidth: 1,
-    borderColor: "transparent",
+    borderColor: colors.border,
     minHeight: 24,
   },
   argInputFilled: {
-    borderColor: colors.accent,
-    backgroundColor: colors.bgHover,
+    borderColor: colors.accentMuted,
   },
 });
