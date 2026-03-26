@@ -58,4 +58,4 @@ src-tauri/                   → Rust/Tauri shell (minimal, mostly boilerplate)
 
 - Vite dev server must run on port 1420 — Tauri is configured to connect there
 - `react-native` is aliased to `react-native-web` in `vite.config.ts` — use React Native APIs, not DOM
-- The Rust backend has no real commands yet; GraphQL fetching happens entirely in the browser via `fetch()`
+- The Rust backend handles network requests (e.g., `fetch_graphql` via Tauri IPC) to bypass CORS;
