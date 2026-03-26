@@ -107,7 +107,8 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
 
   return (
     <View style={styles.container}>
-      <View
+      <Pressable
+        onPress={handleToggle}
         style={[
           styles.row,
           { paddingLeft: leftPadding },
@@ -126,11 +127,7 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
         )}
 
         {/* Checkbox */}
-        <Checkbox
-          checked={selected}
-          indeterminate={indeterminate}
-          onPress={handleToggle}
-        />
+        <Checkbox checked={selected} indeterminate={indeterminate} />
 
         {/* Field name */}
         <Text
@@ -158,7 +155,7 @@ export function FieldNode({ node, depth, operationType }: FieldNodeProps) {
 
         {/* Type label */}
         <Text style={styles.typeLabel}>{node.typeString}</Text>
-      </View>
+      </Pressable>
 
       {/* Arguments panel — visible when node is expanded */}
       {expanded && node.args.length > 0 && (

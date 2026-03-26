@@ -1,55 +1,39 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Check, Minus } from "lucide-react";
+import { StyleSheet, View } from "react-native";
+import { Check, Circle, Minus } from "lucide-react";
 import { colors } from "../theme";
 
 interface CheckboxProps {
   checked: boolean;
   indeterminate?: boolean;
-  onPress: () => void;
-  disabled?: boolean;
 }
 
-export function Checkbox({
-  checked,
-  indeterminate,
-  onPress,
-  disabled,
-}: CheckboxProps) {
+export function Checkbox({ checked, indeterminate }: CheckboxProps) {
   const isActive = checked || indeterminate;
 
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      hitSlop={4}
-      style={[
-        styles.container,
-        isActive && styles.active,
-        disabled && styles.disabled,
-      ]}
-    >
-      {checked && !indeterminate && (
-        <Check size={14} color="#FFFFFF" strokeWidth={3.5} />
-      )}
-      {indeterminate && <Minus size={14} color="#FFFFFF" strokeWidth={3.5} />}
-    </Pressable>
-  );
+  if (isActive) {
+    return (
+      <View style={styles.filledCircle}>
+        {indeterminate ? (
+          <Minus size={10} color="#FFFFFF" strokeWidth={3} />
+        ) : (
+          <Check size={10} color="#FFFFFF" strokeWidth={3} />
+        )}
+      </View>
+    );
+  }
+
+  return <Circle size={16} color={colors.checkboxBorder} strokeWidth={1.5} />;
 }
 
 const styles = StyleSheet.create({
-  container: {
-    width: 14,
-    height: 14,
-    borderRadius: 3,
-    borderWidth: 1.5,
-    borderColor: colors.checkboxBorder,
+  filledCircle: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.checkboxChecked,
     justifyContent: "center",
     alignItems: "center",
-  },
-  active: {
-    backgroundColor: colors.checkboxChecked,
-    borderColor: colors.checkboxChecked,
   },
   disabled: {
     opacity: 0.4,
