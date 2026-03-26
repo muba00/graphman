@@ -231,6 +231,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingRight: spacing.xl,
     minHeight: 28,
+    userSelect: "none",
   },
   rowSelected: {
     backgroundColor: "rgba(0, 122, 204, 0.06)",
