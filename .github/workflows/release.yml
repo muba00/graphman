@@ -25,7 +25,7 @@ jobs:
               tag_name: context.ref.replace('refs/tags/', ''),
               name: `Graphman ${context.ref.replace('refs/tags/', '')}`,
               body: 'See the attached assets for the corresponding platform.\n\n###  macOS users\n\nBefore opening the app, you need to run the following in Terminal:\n`xattr -cr /Applications/Graphman.app`',
-              draft: false,
+              draft: true,
               prerelease: false
             })
             return data.id
@@ -74,3 +74,20 @@ jobs:
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.platform == 'macos-latest' && '--target universal-apple-darwin' || '' }}
+
+  publish-release:
+    needs: [create-release, release]
+    permissions:
+      contents: write
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Publish release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ needs.create-release.outputs.release_id }},
+              draft: false
+            })
