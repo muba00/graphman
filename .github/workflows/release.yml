@@ -75,6 +75,8 @@ jobs:
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           tagName: ${{ github.ref_name }}
+          uploadUpdaterJson: true
+          uploadUpdaterSignatures: true
           args: ${{ matrix.platform == 'macos-latest' && '--target universal-apple-darwin' || '' }}
 
   publish-release:
