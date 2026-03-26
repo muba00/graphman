@@ -11,16 +11,12 @@ import { colors, fonts, spacing } from "../theme";
 import { useAppState } from "../state/appStore";
 
 interface EndpointInputProps {
-  onFetchSchema: (endpoint: string) => void;
+  onQuery: (endpoint: string) => void;
   loading: boolean;
   error: string | null;
 }
 
-export function EndpointInput({
-  onFetchSchema,
-  loading,
-  error,
-}: EndpointInputProps) {
+export function EndpointInput({ onQuery, loading, error }: EndpointInputProps) {
   const { lastEndpoint } = useAppState();
   const [url, setUrl] = useState(lastEndpoint);
 
@@ -33,7 +29,7 @@ export function EndpointInput({
   const handleSubmit = () => {
     const trimmed = url.trim();
     if (trimmed) {
-      onFetchSchema(trimmed);
+      onQuery(trimmed);
     }
   };
 
@@ -60,7 +56,7 @@ export function EndpointInput({
           {loading ? (
             <ActivityIndicator size="small" color={colors.textInverse} />
           ) : (
-            <Text style={styles.buttonText}>Fetch Schema</Text>
+            <Text style={styles.buttonText}>Query</Text>
           )}
         </Pressable>
       </View>

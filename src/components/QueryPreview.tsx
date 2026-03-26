@@ -1,133 +1,149 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import type { OperationType, SchemaTreeNode } from "../types/graphql";
-import { useSelection } from "../state/selectionStore";
-import { generateAllQueries } from "../utils/queryGenerator";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { colors, fonts, spacing } from "../theme";
 
+type Tab = "query" | "variables" | "response";
+
 interface QueryPreviewProps {
-  trees: Partial<Record<OperationType, SchemaTreeNode[]>>;
+  queryText: string;
+  variables: Record<string, unknown>;
+  queryResult: unknown | null;
+  queryLoading: boolean;
+  queryError: string | null;
 }
 
-export function QueryPreview({ trees }: QueryPreviewProps) {
-  const { state } = useSelection();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [topHeight, setTopHeight] = useState(() => {
-    if (typeof window === "undefined") return 400;
-    const saved = localStorage.getItem("graphman_topHeight");
-    if (saved) return parseInt(saved, 10);
-    return window.innerHeight / 2;
-  });
-  const [isDraggingHandle, setIsDraggingHandle] = useState(false);
-  const dragInfo = useRef({ isDragging: false, startY: 0, startHeight: 0 });
-  const currentTopHeight = useRef(topHeight);
+const TAB_LABELS: Record<Tab, string> = {
+  query: "Query",
+  variables: "Variables",
+  response: "Response",
+};
 
-  const generated = useMemo(
-    () => generateAllQueries(state, trees),
-    [state, trees],
+const TABS: Tab[] = ["query", "variables", "response"];
+
+export function QueryPreview({
+  queryText,
+  variables,
+  queryResult,
+  queryLoading,
+  queryError,
+}: QueryPreviewProps) {
+  const [activeTab, setActiveTab] = useState<Tab>("query");
+
+  // Auto-switch to the Response tab as soon as the query starts loading
+  useEffect(() => {
+    if (queryLoading) {
+      setActiveTab("response");
+    }
+  }, [queryLoading]);
+
+  const hasResponse = queryResult !== null || queryError !== null;
+
+  const formattedResult = useMemo(() => {
+    if (queryResult === null) return null;
+    try {
+      return JSON.stringify(queryResult, null, 2);
+    } catch {
+      return String(queryResult);
+    }
+  }, [queryResult]);
+
+  const formattedVariables = useMemo(
+    () =>
+      JSON.stringify(
+        Object.keys(variables).length > 0 ? variables : {},
+        null,
+        2,
+      ),
+    [variables],
   );
 
-  useEffect(() => {
-    const getMaxHeight = () => {
-      // Use the container's actual height so Variables always gets at least 100px + its header
-      const containerH =
-        containerRef.current?.clientHeight ?? window.innerHeight;
-      return Math.max(100, containerH - 134); // 134 = variables header (~30) + minHeight (100) + handle (4)
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!dragInfo.current.isDragging) return;
-
-      const dy = e.clientY - dragInfo.current.startY;
-      const newHeight = Math.max(100, dragInfo.current.startHeight + dy);
-      const finalHeight = Math.min(newHeight, getMaxHeight());
-      setTopHeight(finalHeight);
-      currentTopHeight.current = finalHeight;
-    };
-
-    const handleMouseUp = () => {
-      if (dragInfo.current.isDragging) {
-        dragInfo.current.isDragging = false;
-        setIsDraggingHandle(false);
-        document.body.style.cursor = "default";
-        localStorage.setItem(
-          "graphman_topHeight",
-          currentTopHeight.current.toString(),
-        );
-      }
-    };
-
-    const handleWindowResize = () => {
-      const max = getMaxHeight();
-      if (currentTopHeight.current > max) {
-        const clamped = Math.max(100, max);
-        setTopHeight(clamped);
-        currentTopHeight.current = clamped;
-      }
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-    window.addEventListener("resize", handleWindowResize);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-      window.removeEventListener("resize", handleWindowResize);
-    };
-  }, []);
-
   return (
-    <View style={styles.container} ref={containerRef as any}>
-      <View style={[styles.querySection, { height: topHeight }]}>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Generated Query</Text>
+    <View style={styles.container}>
+      {/* ── Tab bar ── */}
+      <View style={styles.tabBar}>
+        <View style={styles.tabs}>
+          {TABS.map((tab) => (
+            <Pressable
+              key={tab}
+              style={[styles.tab, activeTab === tab && styles.tabActive]}
+              onPress={() => setActiveTab(tab)}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === tab && styles.tabTextActive,
+                ]}
+              >
+                {TAB_LABELS[tab]}
+                {tab === "response" && hasResponse && !queryLoading ? " •" : ""}
+              </Text>
+            </Pressable>
+          ))}
         </View>
-        <ScrollView
-          style={styles.codeScroll}
-          contentContainerStyle={styles.codeContent}
-        >
-          {generated.query ? (
-            <Text style={styles.code} selectable>
-              {generated.query}
-            </Text>
-          ) : (
-            <Text style={styles.placeholder}>
-              Select fields from the schema to generate a query.
-            </Text>
-          )}
-        </ScrollView>
       </View>
 
-      {/* Interactive Horizontal Resize Handle */}
-      <div
-        className={`resize-handle-horizontal ${isDraggingHandle ? "dragging" : ""}`}
-        onMouseDown={(e) => {
-          e.preventDefault();
-          dragInfo.current = {
-            isDragging: true,
-            startY: e.clientY,
-            startHeight: topHeight,
-          };
-          setIsDraggingHandle(true);
-          document.body.style.cursor = "row-resize";
-        }}
-      />
+      {/* ── Content ── */}
+      <View style={styles.content}>
+        {activeTab === "query" && (
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {queryText ? (
+              <Text style={styles.code} selectable>
+                {queryText}
+              </Text>
+            ) : (
+              <Text style={styles.placeholder}>
+                Select fields from the schema to generate a query.
+              </Text>
+            )}
+          </ScrollView>
+        )}
 
-      <View style={styles.variablesSection}>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Variables</Text>
-        </View>
-        <ScrollView
-          style={styles.codeScroll}
-          contentContainerStyle={styles.codeContent}
-        >
-          <Text style={styles.code} selectable>
-            {generated.query && Object.keys(generated.variables).length > 0
-              ? JSON.stringify(generated.variables, null, 2)
-              : "{}"}
-          </Text>
-        </ScrollView>
+        {activeTab === "variables" && (
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+          >
+            <Text style={styles.code} selectable>
+              {formattedVariables}
+            </Text>
+          </ScrollView>
+        )}
+
+        {activeTab === "response" && (
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {queryLoading ? (
+              <View style={styles.loadingMessage}>
+                <ActivityIndicator size="small" color={colors.accent} />
+                <Text style={[styles.placeholder, styles.loadingText]}>
+                  Running query…
+                </Text>
+              </View>
+            ) : queryError ? (
+              <Text style={styles.errorText}>{queryError}</Text>
+            ) : formattedResult !== null ? (
+              <Text style={styles.code} selectable>
+                {formattedResult}
+              </Text>
+            ) : (
+              <Text style={styles.placeholder}>
+                Run a query to see the response here.
+              </Text>
+            )}
+          </ScrollView>
+        )}
       </View>
     </View>
   );
@@ -141,38 +157,49 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     overflow: "hidden",
   },
-  querySection: {
-    minHeight: 100,
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-  },
-  variablesSection: {
-    flex: 1,
-    minHeight: 100,
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-  },
-  header: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+  // ── Tab bar ──
+  tabBar: {
+    flexDirection: "row",
+    alignItems: "center",
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    backgroundColor: colors.bgSurface,
+    paddingHorizontal: spacing.sm,
   },
-  headerText: {
-    fontSize: fonts.smallSize,
-    fontWeight: "600",
+  tabs: {
+    flex: 1,
+    flexDirection: "row",
+  },
+  tab: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
+    marginBottom: -1,
+  },
+  tabActive: {
+    borderBottomColor: colors.accent,
+  },
+  tabText: {
+    fontSize: fonts.uiSize,
     color: colors.textSecondary,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    fontWeight: "500",
   },
-  codeScroll: {
+  tabTextActive: {
+    color: colors.textPrimary,
+  },
+  // ── Content area ──
+  content: {
+    flex: 1,
+    overflow: "hidden",
+  },
+  scroll: {
     flex: 1,
   },
-  codeContent: {
+  scrollContent: {
     padding: spacing.md,
   },
+  // ── Text styles ──
   code: {
     fontFamily: fonts.mono,
     fontSize: fonts.monoSize,
@@ -183,5 +210,18 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: fonts.uiSize,
     fontStyle: "italic",
+  },
+  errorText: {
+    color: colors.error,
+    fontFamily: fonts.mono,
+    fontSize: fonts.monoSize,
+    lineHeight: 18,
+  },
+  loadingMessage: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginLeft: spacing.sm,
   },
 });

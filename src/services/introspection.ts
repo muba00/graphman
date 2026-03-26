@@ -123,7 +123,7 @@ export async function fetchSchema(
       endpoint,
       query: INTROSPECTION_QUERY,
       variables: null,
-      headers: headers || null,
+      headers: headers ?? null,
     });
 
     const json = JSON.parse(responseText);
@@ -146,6 +146,38 @@ export async function fetchSchema(
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Unknown error during introspection";
+    return { ok: false, error: message };
+  }
+}
+
+// ── Query Execution ──────────────────────────────────────────────────
+
+export type QueryExecutionResponse =
+  | { ok: true; data: unknown }
+  | { ok: false; error: string };
+
+/**
+ * Execute a GraphQL query against an endpoint via the Tauri backend.
+ */
+export async function executeQuery(
+  endpoint: string,
+  query: string,
+  variables: Record<string, unknown>,
+  headers?: Record<string, string>,
+): Promise<QueryExecutionResponse> {
+  try {
+    const responseText = await invoke<string>("fetch_graphql", {
+      endpoint,
+      query,
+      variables: Object.keys(variables).length > 0 ? variables : null,
+      headers: headers ?? null,
+    });
+
+    const json = JSON.parse(responseText);
+    return { ok: true, data: json };
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Unknown error executing query";
     return { ok: false, error: message };
   }
 }

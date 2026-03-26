@@ -11,22 +11,27 @@ import type {
   OperationType,
   SchemaTreeNode,
 } from "../types/graphql";
-import { fetchSchema } from "../services/introspection";
+import { executeQuery, fetchSchema } from "../services/introspection";
 import {
   buildOperationTree,
   getAvailableOperations,
 } from "../utils/schemaParser";
-import { SelectionProvider } from "../state/selectionStore";
+import { SelectionProvider, useSelection } from "../state/selectionStore";
 import { EndpointInput } from "../components/EndpointInput";
 import { SchemaExplorer } from "../components/SchemaExplorer";
 import { QueryPreview } from "../components/QueryPreview";
 import { useAppDispatch, useAppState } from "../state/appStore";
+import { generateAllQueries } from "../utils/queryGenerator";
 import { colors, fonts, spacing } from "../theme";
 
 function QueryBuilderContent() {
   const [schema, setSchema] = useState<IntrospectionSchema | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [schemaEndpoint, setSchemaEndpoint] = useState<string | null>(null);
+  const [queryResult, setQueryResult] = useState<unknown | null>(null);
+  const [queryLoading, setQueryLoading] = useState(false);
+  const [queryError, setQueryError] = useState<string | null>(null);
   const [leftWidth, setLeftWidth] = useState(() => {
     if (typeof window === "undefined") return 350;
     const saved = localStorage.getItem("graphman_leftWidth");
@@ -39,6 +44,7 @@ function QueryBuilderContent() {
 
   const appDispatch = useAppDispatch();
   const { lastEndpoint } = useAppState();
+  const { state: selectionState } = useSelection();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -99,15 +105,47 @@ function QueryBuilderContent() {
     return result;
   }, [schema]);
 
-  const handleFetchSchema = useCallback(
+  const generated = useMemo(
+    () => generateAllQueries(selectionState, trees),
+    [selectionState, trees],
+  );
+
+  const handleRunQuery = useCallback(async () => {
+    if (!generated.query || !schemaEndpoint) return;
+    setQueryLoading(true);
+    setQueryError(null);
+    const result = await executeQuery(
+      schemaEndpoint,
+      generated.query,
+      generated.variables,
+    );
+    if (result.ok) {
+      setQueryResult(result.data);
+    } else {
+      setQueryError(result.error);
+      setQueryResult(null);
+    }
+    setQueryLoading(false);
+  }, [generated, schemaEndpoint]);
+
+  const handleQuery = useCallback(
     async (endpoint: string) => {
+      // If schema is already loaded for this exact endpoint, run the query
+      if (schema && endpoint === schemaEndpoint) {
+        await handleRunQuery();
+        return;
+      }
+      // Otherwise fetch (or re-fetch) the schema for the new endpoint
       setLoading(true);
       setError(null);
+      setQueryResult(null);
+      setQueryError(null);
 
       const result = await fetchSchema(endpoint);
 
       if (result.ok) {
         setSchema(result.data.data.__schema);
+        setSchemaEndpoint(endpoint);
         appDispatch({ type: "SET_LAST_ENDPOINT", payload: endpoint });
       } else {
         setError(result.error);
@@ -115,13 +153,13 @@ function QueryBuilderContent() {
 
       setLoading(false);
     },
-    [appDispatch],
+    [schema, schemaEndpoint, handleRunQuery, appDispatch],
   );
 
   // Auto-fetch if we have a persisted endpoint and haven't fetched yet
   useEffect(() => {
     if (lastEndpoint && !schema && !loading && !error) {
-      handleFetchSchema(lastEndpoint);
+      handleQuery(lastEndpoint);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on initial mount
@@ -129,8 +167,8 @@ function QueryBuilderContent() {
   return (
     <View style={styles.container}>
       <EndpointInput
-        onFetchSchema={handleFetchSchema}
-        loading={loading}
+        onQuery={handleQuery}
+        loading={loading || queryLoading}
         error={error}
       />
 
@@ -152,9 +190,15 @@ function QueryBuilderContent() {
             }}
           />
 
-          {/* Right panel: Query preview */}
+          {/* Right panel: Query preview (tabbed) */}
           <View style={styles.previewPanel}>
-            <QueryPreview trees={trees} />
+            <QueryPreview
+              queryText={generated.query}
+              variables={generated.variables}
+              queryResult={queryResult}
+              queryLoading={queryLoading}
+              queryError={queryError}
+            />
           </View>
         </View>
       ) : (
