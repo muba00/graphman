@@ -2,12 +2,16 @@ import React, { createContext, useContext, useReducer, ReactNode } from "react";
 
 export interface AppState {
   lastEndpoint: string;
+  authToken: string;
 }
 
-type Action = { type: "SET_LAST_ENDPOINT"; payload: string };
+type Action =
+  | { type: "SET_LAST_ENDPOINT"; payload: string }
+  | { type: "SET_AUTH_TOKEN"; payload: string };
 
 const initialState: AppState = {
   lastEndpoint: "",
+  authToken: "",
 };
 
 const AppStateContext = createContext<AppState | undefined>(undefined);
@@ -22,6 +26,9 @@ function appReducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case "SET_LAST_ENDPOINT":
       newState = { ...state, lastEndpoint: action.payload };
+      break;
+    case "SET_AUTH_TOKEN":
+      newState = { ...state, authToken: action.payload };
       break;
     default:
       return state;

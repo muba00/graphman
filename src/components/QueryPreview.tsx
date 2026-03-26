@@ -5,12 +5,14 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
+import { Eye, EyeOff } from "lucide-react";
 import { colors, fonts, spacing } from "../theme";
 import { HighlightedCode } from "./HighlightedCode";
 
-type Tab = "query" | "variables" | "response";
+type Tab = "query" | "variables" | "response" | "auth";
 
 interface QueryPreviewProps {
   queryText: string;
@@ -18,15 +20,18 @@ interface QueryPreviewProps {
   queryResult: unknown | null;
   queryLoading: boolean;
   queryError: string | null;
+  authToken: string;
+  onAuthTokenChange: (token: string) => void;
 }
 
 const TAB_LABELS: Record<Tab, string> = {
   query: "Query",
   variables: "Variables",
   response: "Response",
+  auth: "Authorization",
 };
 
-const TABS: Tab[] = ["query", "variables", "response"];
+const TABS: Tab[] = ["query", "auth", "variables", "response"];
 
 export function QueryPreview({
   queryText,
@@ -34,8 +39,11 @@ export function QueryPreview({
   queryResult,
   queryLoading,
   queryError,
+  authToken,
+  onAuthTokenChange,
 }: QueryPreviewProps) {
   const [activeTab, setActiveTab] = useState<Tab>("query");
+  const [showToken, setShowToken] = useState(false);
 
   // Auto-switch to the Response tab as soon as the query starts loading
   useEffect(() => {
@@ -47,6 +55,7 @@ export function QueryPreview({
   const hasError = queryError !== null;
   const hasSuccess = queryResult !== null && !hasError;
   const hasVariables = Object.keys(variables).length > 0;
+  const hasAuth = authToken.trim().length > 0;
 
   const formattedResult = useMemo(() => {
     if (queryResult === null) return null;
@@ -97,6 +106,9 @@ export function QueryPreview({
                   />
                 )}
               {tab === "variables" && hasVariables && (
+                <View style={[styles.dot, styles.dotSuccess]} />
+              )}
+              {tab === "auth" && hasAuth && (
                 <View style={[styles.dot, styles.dotSuccess]} />
               )}
             </Pressable>
@@ -151,6 +163,63 @@ export function QueryPreview({
                 Run a query to see the response here.
               </Text>
             )}
+          </ScrollView>
+        )}
+
+        {activeTab === "auth" && (
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+          >
+            <View style={styles.authForm}>
+              <View style={styles.authField}>
+                <Text style={styles.authLabel}>Auth Type</Text>
+                <select
+                  value="bearer"
+                  style={{
+                    backgroundColor: colors.bgInput,
+                    color: colors.textPrimary,
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: 6,
+                    padding: "4px 8px",
+                    fontSize: fonts.uiSize,
+                    fontFamily: fonts.mono,
+                    height: 28,
+                    cursor: "pointer",
+                    outline: "none",
+                    width: "100%",
+                  }}
+                >
+                  <option value="bearer">Bearer Token</option>
+                </select>
+              </View>
+              <View style={styles.authField}>
+                <Text style={styles.authLabel}>Token</Text>
+                <View style={styles.authInputRow}>
+                  <TextInput
+                    style={styles.authInput}
+                    value={authToken}
+                    onChangeText={onAuthTokenChange}
+                    placeholder="Token"
+                    placeholderTextColor={colors.textMuted}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    secureTextEntry={!showToken}
+                  />
+                  <Pressable
+                    style={styles.authToggle}
+                    onPress={() => setShowToken((v) => !v)}
+                    accessibilityLabel={showToken ? "Hide token" : "Show token"}
+                  >
+                    {showToken ? (
+                      <EyeOff size={14} color={colors.textSecondary} />
+                    ) : (
+                      <Eye size={14} color={colors.textSecondary} />
+                    )}
+                  </Pressable>
+                </View>
+              </View>
+            </View>
           </ScrollView>
         )}
       </View>
@@ -241,5 +310,41 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: spacing.sm,
+  },
+  authForm: {
+    gap: spacing.lg,
+  },
+  authField: {
+    gap: spacing.sm,
+  },
+  authLabel: {
+    fontSize: fonts.uiSize,
+    color: colors.textSecondary,
+    fontWeight: "600",
+  },
+  authInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.bgInput,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+    height: 28,
+  },
+  authInput: {
+    flex: 1,
+    fontFamily: fonts.mono,
+    fontSize: fonts.monoSize,
+    color: colors.textPrimary,
+    backgroundColor: "transparent",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    height: 28,
+  },
+  authToggle: {
+    paddingHorizontal: spacing.sm,
+    height: 28,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

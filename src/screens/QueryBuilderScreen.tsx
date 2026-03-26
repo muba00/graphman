@@ -43,7 +43,7 @@ function QueryBuilderContent() {
   const currentLeftWidth = useRef(leftWidth);
 
   const appDispatch = useAppDispatch();
-  const { lastEndpoint } = useAppState();
+  const { lastEndpoint, authToken } = useAppState();
   const { state: selectionState } = useSelection();
 
   useEffect(() => {
@@ -114,10 +114,15 @@ function QueryBuilderContent() {
     if (!generated.query || !schemaEndpoint) return;
     setQueryLoading(true);
     setQueryError(null);
+    const headers: Record<string, string> = {};
+    if (authToken.trim()) {
+      headers["Authorization"] = `Bearer ${authToken.trim()}`;
+    }
     const result = await executeQuery(
       schemaEndpoint,
       generated.query,
       generated.variables,
+      Object.keys(headers).length > 0 ? headers : undefined,
     );
     if (result.ok) {
       setQueryResult(result.data);
@@ -126,7 +131,7 @@ function QueryBuilderContent() {
       setQueryResult(null);
     }
     setQueryLoading(false);
-  }, [generated, schemaEndpoint]);
+  }, [generated, schemaEndpoint, authToken]);
 
   const handleQuery = useCallback(
     async (endpoint: string) => {
@@ -141,7 +146,14 @@ function QueryBuilderContent() {
       setQueryResult(null);
       setQueryError(null);
 
-      const result = await fetchSchema(endpoint);
+      const headers: Record<string, string> = {};
+      if (authToken.trim()) {
+        headers["Authorization"] = `Bearer ${authToken.trim()}`;
+      }
+      const result = await fetchSchema(
+        endpoint,
+        Object.keys(headers).length > 0 ? headers : undefined,
+      );
 
       if (result.ok) {
         setSchema(result.data.data.__schema);
@@ -153,7 +165,7 @@ function QueryBuilderContent() {
 
       setLoading(false);
     },
-    [schema, schemaEndpoint, handleRunQuery, appDispatch],
+    [schema, schemaEndpoint, handleRunQuery, appDispatch, authToken],
   );
 
   // Auto-fetch if we have a persisted endpoint and haven't fetched yet
@@ -198,6 +210,10 @@ function QueryBuilderContent() {
               queryResult={queryResult}
               queryLoading={queryLoading}
               queryError={queryError}
+              authToken={authToken}
+              onAuthTokenChange={(token) =>
+                appDispatch({ type: "SET_AUTH_TOKEN", payload: token })
+              }
             />
           </View>
         </View>
