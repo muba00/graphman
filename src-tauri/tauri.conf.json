@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Graphman",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "identifier": "com.mubariz.graphman",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -37,7 +37,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVENzZFMkY0MkNGRkFFMUUKUldRZXJ2OHM5T0oyN1F5b2Z2L3NhT3VScUtGWk14Q0tydVZUbmpLWTJqNU5UMXBGMWl4THFycjQK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDgzNkJERDM0MEVDQjFBREIKUldUYkdzc09OTjFyZzNzbWpYZnhGd1JyS3ZkeFlHdzNUZGRpNkFocGp0SGxZeDlOV29EUnhVbFAK",
       "endpoints": [
         "https://github.com/muba00/graphman/releases/latest/download/latest.json"
       ]
