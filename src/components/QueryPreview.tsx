@@ -43,7 +43,8 @@ export function QueryPreview({
     }
   }, [queryLoading]);
 
-  const hasResponse = queryResult !== null || queryError !== null;
+  const hasError = queryError !== null;
+  const hasSuccess = queryResult !== null && !hasError;
 
   const formattedResult = useMemo(() => {
     if (queryResult === null) return null;
@@ -82,8 +83,17 @@ export function QueryPreview({
                 ]}
               >
                 {TAB_LABELS[tab]}
-                {tab === "response" && hasResponse && !queryLoading ? " •" : ""}
               </Text>
+              {tab === "response" &&
+                !queryLoading &&
+                (hasSuccess || hasError) && (
+                  <View
+                    style={[
+                      styles.dot,
+                      hasError ? styles.dotError : styles.dotSuccess,
+                    ]}
+                  />
+                )}
             </Pressable>
           ))}
         </View>
@@ -165,14 +175,17 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     backgroundColor: colors.bgSurface,
     paddingHorizontal: spacing.sm,
+    height: 33,
   },
   tabs: {
     flex: 1,
     flexDirection: "row",
+    alignSelf: "stretch",
   },
   tab: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
     borderBottomWidth: 2,
     borderBottomColor: "transparent",
     marginBottom: -1,
@@ -183,10 +196,22 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: fonts.uiSize,
     color: colors.textSecondary,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   tabTextActive: {
     color: colors.textPrimary,
+  },
+  dot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    marginLeft: 6,
+  },
+  dotSuccess: {
+    backgroundColor: colors.success,
+  },
+  dotError: {
+    backgroundColor: colors.error,
   },
   // ── Content area ──
   content: {
