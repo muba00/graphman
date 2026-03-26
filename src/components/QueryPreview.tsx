@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { colors, fonts, spacing } from "../theme";
+import { HighlightedCode } from "./HighlightedCode";
 
 type Tab = "query" | "variables" | "response";
 
@@ -111,9 +112,7 @@ export function QueryPreview({
             contentContainerStyle={styles.scrollContent}
           >
             {queryText ? (
-              <Text style={styles.code} selectable>
-                {queryText}
-              </Text>
+              <HighlightedCode text={queryText} language="graphql" />
             ) : (
               <Text style={styles.placeholder}>
                 Select fields from the schema to generate a query.
@@ -127,9 +126,7 @@ export function QueryPreview({
             style={styles.scroll}
             contentContainerStyle={styles.scrollContent}
           >
-            <Text style={styles.code} selectable>
-              {formattedVariables}
-            </Text>
+            <HighlightedCode text={formattedVariables} language="json" />
           </ScrollView>
         )}
 
@@ -148,9 +145,7 @@ export function QueryPreview({
             ) : queryError ? (
               <Text style={styles.errorText}>{queryError}</Text>
             ) : formattedResult !== null ? (
-              <Text style={styles.code} selectable>
-                {formattedResult}
-              </Text>
+              <HighlightedCode text={formattedResult} language="json" />
             ) : (
               <Text style={styles.placeholder}>
                 Run a query to see the response here.
@@ -229,12 +224,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   // ── Text styles ──
-  code: {
-    fontFamily: fonts.mono,
-    fontSize: fonts.monoSize,
-    color: colors.syntaxKeyword,
-    lineHeight: 18,
-  },
   placeholder: {
     color: colors.textMuted,
     fontSize: fonts.uiSize,
